@@ -1,0 +1,40 @@
+[int:10,"happy",'l',float:32.5f,[int:10,int:11,"hi!",null,{"chris":true,"f":null,"bob":"na ra"},float:32.5f],bytes:1#AQIECA==]
+[
+  int : 10,
+  "happy",
+  'l',
+  float : 32.5f,
+  [
+    int : 10,
+    int : 11,
+    "hi!",
+    null,
+    {
+      "chris" : true,
+      "f" : null,
+      "bob" : "na ra"
+    },
+    float : 32.5f
+  ],
+  bytes : 1#AQIECA==
+]
+[int:10,string:"happy",char:'l',float:32.5f,list:[int:10,int:11,string:"hi!",null:null,map:{"chris":bool:true,"f":null:null,"bob":string:"na ra"},float:32.5f],bytes:1#AQIECA==]
+[
+  int : 10,
+  string : "happy",
+  char : 'l',
+  float : 32.5f,
+  list : [
+    int : 10,
+    int : 11,
+    string : "hi!",
+    null : null,
+    map : {
+      "chris" : bool : true,
+      "f" : null : null,
+      "bob" : string : "na ra"
+    },
+    float : 32.5f
+  ],
+  bytes : 1#AQIECA==
+]

@@ -1,0 +1,30 @@
+[true,short:12,int:12,12,float:13.0f,13.0d,'&',"some string",bytes:10#AQcEBQ==,utc:1578684896657,null,uuid:e05ecb47-aaa2-4792-b017-12454147d108]
+[
+  true,
+  short : 12,
+  int : 12,
+  12,
+  float : 13.0f,
+  13.0d,
+  '&',
+  "some string",
+  bytes : 10#AQcEBQ==,
+  utc : 1578684896657,
+  null,
+  uuid : e05ecb47-aaa2-4792-b017-12454147d108
+]
+[bool:true,short:12,int:12,long:12,float:13.0f,double:13.0d,char:'&',string:"some string",bytes:10#AQcEBQ==,utc:1578684896657,null:null,uuid:e05ecb47-aaa2-4792-b017-12454147d108]
+[
+  bool : true,
+  short : 12,
+  int : 12,
+  long : 12,
+  float : 13.0f,
+  double : 13.0d,
+  char : '&',
+  string : "some string",
+  bytes : 10#AQcEBQ==,
+  utc : 1578684896657,
+  null : null,
+  uuid : e05ecb47-aaa2-4792-b017-12454147d108
+]

@@ -1,0 +1,186 @@
+options
+{
+  UNICODE_INPUT = true;
+  JAVA_UNICODE_ESCAPE = false;
+  DEBUG_TOKEN_MANAGER = false;
+  DEBUG_PARSER = false;
+}
+
+PARSER_BEGIN(SonQueryParser)
+
+package com.terracottatech.tcson.parser.query;
+
+import com.terracottatech.tcson.parser.FieldReference;
+
+import java.util.List;
+import java.util.ArrayList;
+
+public class SonQueryParser
+{
+}
+
+PARSER_END(SonQueryParser)
+
+TOKEN [ IGNORE_CASE ] :
+{
+  < KW_LSQUARE : "[" >
+  | < KW_RSQUARE : "]" >
+  | < KW_COMMA : "," >
+  | < KW_COLON : ":" >
+  | < KW_PERIOD : "." >
+}
+
+SKIP :
+{
+  " "
+  | "\t"
+  | "\n"
+  | "\r"
+}
+
+TOKEN [IGNORE_CASE] :
+{
+ <#DIGIT: ["0"-"9"] >
+ | <#ALPHA: ["a"-"z"] | "-" | "_" >
+ | <#ALPHANUM: <DIGIT> | <ALPHA> >
+ | <INT_NUMBER: (<DIGIT>)+ >
+ | <INT_SPAN: <INT_NUMBER> "-" <INT_NUMBER> >
+ | <STRING_LITERAL: <ALPHA> (<ALPHANUM>)*>
+}
+
+
+/*
+	dotspec := (<field> | <array>) (subref)*
+	subref := ( . <field> ) | ( <array> )
+	array := [ <arrspec> ]
+	<field> := <alphastring>
+
+ */
+
+List<FieldReference> dotSpec():
+{
+   FieldReference fr=null;
+   List<FieldReference> subs;
+   List<FieldReference> ret=new ArrayList<>();
+}
+{
+   (
+       (
+           (
+              <KW_PERIOD> { ret.add(new FieldReference()); }
+           )
+           |
+           (
+              (
+                 fr=fieldComponent() { ret.add(fr); }
+              )
+              |
+              (
+                 fr=arraySpec() { ret.add(fr); }
+              )
+          )
+      )
+      (
+          fr=subRef() { ret.add(fr); }
+      ) *
+   )
+   {
+      return ret;
+   }
+}
+
+FieldReference subRef():
+{
+   FieldReference fr=null;
+   String s;
+   List<Integer> arr;
+}
+{
+   (
+       (
+          <KW_PERIOD>
+          (fr=fieldComponent())?
+       )
+       {
+          if(fr==null) {
+             fr=new FieldReference();
+          }
+       }
+       |
+       (
+          fr=arraySpec()
+       )
+   )
+   {
+      return fr;
+   }
+}
+
+FieldReference fieldComponent():
+{
+   Token t1;
+}
+{
+
+   t1=<STRING_LITERAL> { return new FieldReference(t1.image.trim()); }
+}
+
+List<Integer> arrayPart():
+{
+   Token t1;
+   Token t2=null;
+   List<Integer> list = new ArrayList<>();
+}
+{
+   (
+       (
+         t1=<INT_SPAN>
+         {
+            String[] parts=t1.image.trim().split("-");
+            int from = Integer.parseInt(parts[0].trim());
+            int to = Integer.parseInt(parts[1].trim());
+            if(from>to || from<0 || to <0) {
+               throw new ParseException("Invalid array spans: "+t1.image);
+            }
+            for(int i=from;i<=to;i++) {
+               list.add(i);
+            }
+         }
+       )
+       |
+       (
+          t1=<INT_NUMBER>
+          {
+            int p = Integer.parseInt(t1.image.trim());
+            list.add(p);
+          }
+       )
+    )
+    { return list; }
+}
+
+FieldReference arraySpec():
+{
+   List<Integer> list = new ArrayList<>();
+   List<Integer> subList;
+}
+{
+   (
+      <KW_LSQUARE>
+      (
+         subList=arrayPart()
+         {
+           list.addAll(subList);
+         }
+         (
+             <KW_COMMA>
+             subList=arrayPart()
+             {
+               list.addAll(subList);
+             }
+         )*
+      )?
+      <KW_RSQUARE>
+   )
+   { return new FieldReference(list); }
+}

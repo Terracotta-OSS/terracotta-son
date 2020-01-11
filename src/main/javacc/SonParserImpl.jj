@@ -1,0 +1,585 @@
+options
+{
+  UNICODE_INPUT = true;
+  JAVA_UNICODE_ESCAPE = false;
+  DEBUG_TOKEN_MANAGER = false;
+  DEBUG_PARSER = false;
+  //STATIC = false;
+}
+
+PARSER_BEGIN(SonParserImpl)
+
+package com.terracottatech.tcson.parser;
+
+import com.terracottatech.tcson.MutableSonList;
+import com.terracottatech.tcson.MutableSonMap;
+import com.terracottatech.tcson.mutable.MutableSonValue;
+import com.terracottatech.tcson.mutable.MutableSonListImpl;
+import com.terracottatech.tcson.mutable.MutableSonMapImpl;
+import com.terracottatech.tcson.SonType;
+import com.terracottatech.tcson.UTCMillisDate;
+import com.terracottatech.tcson.SonBytes;
+
+public class SonParserImpl
+{
+}
+
+PARSER_END(SonParserImpl)
+
+TOKEN [ IGNORE_CASE ] :
+{
+  < KW_LSQUARE : "[" >
+  | < KW_RSQUARE : "]" >
+  | < KW_LEFT_CURLY: "{" >
+  | < KW_RIGHT_CURLY: "}" >
+  | < KW_SQ: "'" >
+  | < KW_COMMA : "," >
+  | < KW_COLON: ":">
+  | < KW_POUND: "#">
+  | < KW_LONG_SIGNIFIER: "L" >
+  | < KW_FLOAT_SIGNIFIER: "F" >
+  | < KW_DOUBLE_SIGNIFIER: "D" >
+}
+
+SKIP :
+{
+  " "
+  | "\t"
+  | "\n"
+  | "\r"
+  | < "//" (~["\r", "\n"])* >
+  | < "#" (~["\r", "\n"])* >
+}
+
+SPECIAL_TOKEN : { < SINGLE_LINE_COMMENT: ("//") (~["\n","\r"])* ("\n"|"\r"|"\r\n")? > }
+
+TOKEN [IGNORE_CASE] :
+{
+ <UTC_WITH_TYPE: <UTC_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> (<DIGIT>)+ >
+ | <UUID_WITH_TYPE: <UUID_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> <UUID> >
+ | <BYTES_WITH_TYPE: <BYTES_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> <INT_NUMBER> <_WHITESPACE> <KW_POUND> <_WHITESPACE> <BIN64_LITERAL> >
+ | <INT_WITH_TYPE: <INT_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> <INT_NUMBER> >
+ | <BYTE_WITH_TYPE: <BYTE_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> <INT_NUMBER> >
+ | <SHORT_WITH_TYPE: <SHORT_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> <INT_NUMBER> >
+ | < BOOL_TRUE :  "TRUE" | "T" >
+ | < BOOL_FALSE :  "FALSE" | "F" >
+ | <#DIGIT: ["0"-"9"] >
+ | <#_WHITESPACE:      ( " " | "\t" | "\n" | "\r" | "\u3000")* >
+ | <#SIGN: ["-","+"]>
+ | <#EXPONENT: ("E"|"e") (<SIGN>)? (<DIGIT>)+ >
+ | <FLOAT_NUMBER: (<FLOATING_NUMBER> <KW_FLOAT_SIGNIFIER>)  >
+ | <DOUBLE_NUMBER: (<FLOATING_NUMBER> <KW_DOUBLE_SIGNIFIER>) >
+ | <LONG_NUMBER: <INT_NUMBER> (<KW_LONG_SIGNIFIER>)? >
+ | <FLOATING_NUMBER: <SPECIAL_FLOATS> | ((<DIGIT>)* "." (<DIGIT>)* (<EXPONENT>)? | (<DIGIT>)+ (<EXPONENT>)) >
+ | <INT_NUMBER: (<SIGN>)? (<DIGIT>)+ >
+ | <SINGLE_CHAR_LITERAL: "\'" ( (~["\'","\\","\n","\r"]) | <ESCAPE_CHAR> ) "\'" >
+ | <SINGLE_QUOTE_LITERAL: "\'" ( (~["\'","\\","\n","\r"]) | <ESCAPE_CHAR> ) ( (~["\'","\\","\n","\r"]) | <ESCAPE_CHAR> )+ "\'" >
+ | <DOUBLE_QUOTE_LITERAL: "\"" ( (~["\"","\\","\n","\r"]) | <ESCAPE_CHAR> )* "\"" >
+ | <#ESCAPE_CHAR: "\\" ["/","n","t","b","r","f","\\","u","'","\""]>
+ | <#UUID: <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT>
+      "-"
+      <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT>
+      "-"
+      <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT>
+      "-"
+      <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT>
+      "-"
+      <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT>
+      <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT>
+      <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> <HEX_DIGIT> >
+ | <#HEX_CHAR_DIGIT: ["a"-"f"] >
+ | <#HEX_DIGIT: <HEX_CHAR_DIGIT> | <DIGIT> >
+}
+
+TOKEN :
+{
+ <#BIN64_LITERAL: ( ["a"-"z"] | ["A"-"Z"] <DIGIT> | "=" | "+" | "/" ) + >
+ | <#SPECIAL_FLOATS: ( "Nan" | "-Infinity" | "Infinity" | "+Infinity" ) >
+}
+
+TOKEN [IGNORE_CASE] :
+{
+ < BOOL_TYPE :  "BOOL"  >
+ | < LONG_TYPE :  "LONG"  >
+ | <# BYTES_TYPE : "BYTES" >
+ | <# INT_TYPE :  "INT" >
+ | <# BYTE_TYPE :  "BYTE" >
+ | <# SHORT_TYPE :  "SHORT" >
+ | < CHAR_TYPE : "CHAR"  >
+ | < DOUBLE_TYPE : "DOUBLE"  >
+ | < FLOAT_TYPE : "FLOAT"  >
+ | < STRING_TYPE : "STRING" >
+ | < LIST_TYPE : "LIST" >
+ | < MAP_TYPE : "MAP" >
+ | <# UTC_TYPE: "UTC" >
+ | < NULL_TYPE: <LONG_NULL_TYPE> | <SHORT_NULL_TYPE> >
+ | < #LONG_NULL_TYPE: "NULL" <_WHITESPACE> <KW_COLON> <_WHITESPACE> "NULL" >
+ | < #SHORT_NULL_TYPE: "NULL"  >
+ | <# UUID_TYPE: "UUID" >
+}
+
+MutableSonValue integerValue():
+{
+   Token t;
+   String name;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      (
+         t = <INT_WITH_TYPE>
+         { val=new MutableSonValue(SonType.INT, Integer.parseInt(t.image.split(":")[1].trim())); }
+      )
+   )
+   { return val; }
+}
+
+
+MutableSonValue longValue():
+{
+   Token t;
+   String name;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      ( <LONG_TYPE> <KW_COLON> )?
+      (
+        t = <LONG_NUMBER>
+        {
+          if(t.image.charAt(t.image.length()-1)=='L' || t.image.charAt(t.image.length()-1)=='l') {
+            val=new MutableSonValue(SonType.LONG, Long.parseLong(t.image.substring(0, t.image.length()-1)));
+          } else {
+            val=new MutableSonValue(SonType.LONG, Long.parseLong(t.image));
+          }
+        }
+      )
+   )
+   { return val; }
+}
+
+MutableSonValue shortValue():
+{
+   Token t;
+   String name;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      (
+         t = <SHORT_WITH_TYPE>
+         { val=new MutableSonValue(SonType.SHORT, Short.parseShort(t.image.split(":")[1].trim())); }
+      )
+   )
+   { return val; }
+}
+
+MutableSonValue byteValue():
+{
+   Token t;
+   String name;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      (
+         t =<BYTE_WITH_TYPE>
+         { val=new MutableSonValue(SonType.BYTE, Byte.parseByte(t.image.split(":")[1].trim())); }
+      )
+   )
+   { return val; }
+}
+
+MutableSonValue floatValue():
+{
+   Token t;
+   String name;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      (
+         <FLOAT_TYPE> <KW_COLON>
+         (
+            t = <FLOAT_NUMBER> { val=new MutableSonValue(SonType.FLOAT, Float.parseFloat(t.image.substring(0, t.image.length()-1))); }
+            | t = <FLOATING_NUMBER> { val=new MutableSonValue(SonType.FLOAT, Float.parseFloat(t.image)); }
+         )
+      )
+      | (
+         t = <FLOAT_NUMBER> { val=new MutableSonValue(SonType.FLOAT, Float.parseFloat(t.image)); }
+      )
+   )
+   { return val; }
+}
+
+MutableSonValue doubleValue():
+{
+   Token t;
+   String name;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      (
+         ( <DOUBLE_TYPE> <KW_COLON> )?
+         (
+            t = <DOUBLE_NUMBER> { val=new MutableSonValue(SonType.DOUBLE, Double.parseDouble(t.image.substring(0, t.image.length()-1))); }
+            | t = <FLOATING_NUMBER> { val=new MutableSonValue(SonType.DOUBLE, Double.parseDouble(t.image)); }
+         )
+      )
+   )
+   { return val; }
+}
+
+MutableSonValue nullValue():
+{
+   Token t;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      (
+         <NULL_TYPE>
+         { val=MutableSonValue.NULL_VALUE; }
+      )
+   )
+   { return val; }
+}
+
+MutableSonValue charValue():
+{
+   Token t;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      (
+         (<CHAR_TYPE> <KW_COLON>)?
+         t = <SINGLE_CHAR_LITERAL> { val=new MutableSonValue(SonType.CHAR, ParserSupport.unescapeQuoted(t.image.trim()).charAt(0)); }
+      )
+   )
+   { return val; }
+}
+
+MutableSonValue boolValue():
+{
+   Token t;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      (<BOOL_TYPE> <KW_COLON>)?
+      (
+         t = <BOOL_TRUE> { val=new MutableSonValue(SonType.BOOL, true); }
+         | t = <BOOL_FALSE> { val=new MutableSonValue(SonType.BOOL, false); }
+      )
+   )
+   { return val; }
+}
+
+MutableSonValue stringValue():
+{
+   Token t;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      ( <STRING_TYPE> <KW_COLON> )?
+      t = <DOUBLE_QUOTE_LITERAL> {
+         val=new MutableSonValue(SonType.STRING, ParserSupport.unescapeQuoted(t.image.trim()));
+      }
+   )
+   { return val; }
+}
+
+MutableSonValue utcValue():
+{
+   Token t;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+       t=<UTC_WITH_TYPE>
+       {
+          val=new MutableSonValue(SonType.DATE, new UTCMillisDate(Long.parseLong(t.image.split(":")[1].trim())));
+       }
+   )
+   { return val; }
+}
+
+MutableSonValue uuidValue():
+{
+   Token t;
+   SonType typ;
+   MutableSonValue val;
+}
+{
+   (
+      t=<UUID_WITH_TYPE>
+      {
+         val=new MutableSonValue(SonType.UUID, java.util.UUID.fromString(t.image.split(":")[1].trim()));
+      }
+   )
+   { return val; }
+}
+
+MutableSonValue bytesValue():
+{
+   Token t;
+   MutableSonValue val;
+   String bytes;
+   String justBytes;
+   byte btyp=0;
+}
+{
+   (
+      t = <BYTES_WITH_TYPE>
+      {
+   bytes=t.image.split(":")[1];
+   if(bytes.indexOf('#')>=0){
+     String[] pair=bytes.split("#");
+     btyp=(byte)Integer.parseInt(pair[0].trim());
+     justBytes=pair[1].trim();
+   } else {
+     btyp=(byte)0;
+     justBytes=bytes.trim();
+   }
+   val=new MutableSonValue(SonType.BYTES, new SonBytes(btyp, ParserSupport.parseB64(justBytes)));
+}
+   )
+   { return val; }
+}
+
+MutableSonValue sonValue():
+{
+   MutableSonValue val;
+}
+{
+   (
+      ( val=bytesValue() )
+      | ( val=stringValue() )
+      | ( val=uuidValue() )
+      | ( val=utcValue() )
+      | ( val=boolValue() )
+      | ( val=nullValue() )
+      | ( val=charValue() )
+      | ( val=floatValue() )
+      | ( val=doubleValue() )
+      | ( val=integerValue() )
+      | ( val=longValue() )
+      | ( val=shortValue() )
+      | ( val=byteValue() )
+      | ( val=sonList() )
+      | ( val=sonMap() )
+   )
+   { return val; }
+}
+
+
+MutableSonValue tcValue():
+{
+   MutableSonValue val;
+}
+{
+   (
+      ( val=bytesValue() )
+      | ( val=stringValue() )
+      | ( val=boolValue() )
+      | ( val=charValue() )
+      | ( val=doubleValue() )
+      | ( val=integerValue() )
+      | ( val=longValue() )
+      | ( val=tcList() )
+      | ( val=tcMap() )
+   )
+   { return val; }
+}
+
+MutableSonValue sonList():
+{
+   Token t;
+   MutableSonValue msv=null;
+   String name;
+   MutableSonListImpl ret=new MutableSonListImpl();
+}
+{
+   (<LIST_TYPE>
+   <KW_COLON>)?
+   <KW_LSQUARE>
+     ( msv=sonValue()
+       {
+          ret.add(msv);
+       }
+       (<KW_COMMA> msv=sonValue()
+          {
+             ret.add(msv);
+          }
+       ) *
+     )?
+   <KW_RSQUARE>
+   {
+      return new MutableSonValue(SonType.LIST, ret);
+   }
+}
+
+MutableSonValue tcList():
+{
+   Token t;
+   MutableSonValue msv=null;
+   String name;
+   MutableSonListImpl ret=new MutableSonListImpl();
+}
+{
+   (<LIST_TYPE>
+   <KW_COLON>)?
+   <KW_LSQUARE>
+     ( msv=tcValue()
+       {
+          ret.add(msv);
+       }
+       (<KW_COMMA> msv=tcValue()
+          {
+             ret.add(msv);
+          }
+       ) *
+     )?
+   <KW_RSQUARE>
+   {
+      return new MutableSonValue(SonType.LIST, ret);
+   }
+}
+
+
+MutableSonValue sonMap():
+{
+   Token t;
+   String s;
+   MutableSonValue msv=null;
+   String name;
+   MutableSonMapImpl ret=new MutableSonMapImpl();
+}
+{
+   (<MAP_TYPE>
+   <KW_COLON>)?
+   <KW_LEFT_CURLY>
+     (
+        (
+           (t=<DOUBLE_QUOTE_LITERAL> | t=<SINGLE_QUOTE_LITERAL> | t=<SINGLE_CHAR_LITERAL> )
+           <KW_COLON> msv=sonValue()
+        )
+        {
+           s=ParserSupport.unescapeQuoted(t.image.trim());
+           ret.put(s, msv.getType(), msv.getValue());
+        }
+        (
+           <KW_COMMA>
+           (t=<DOUBLE_QUOTE_LITERAL> | t=<SINGLE_QUOTE_LITERAL> | t=<SINGLE_CHAR_LITERAL> )
+           <KW_COLON> msv=sonValue()
+           {
+              s=ParserSupport.unescapeQuoted(t.image.trim());
+              ret.put(s, msv.getType(), msv.getValue());
+           }
+        ) *
+     )?
+   <KW_RIGHT_CURLY>
+   {
+      return new MutableSonValue(SonType.MAP, ret);
+   }
+}
+
+
+MutableSonValue tcMap():
+{
+   Token t;
+   String s;
+   MutableSonValue msv=null;
+   String name;
+   MutableSonMapImpl ret=new MutableSonMapImpl();
+}
+{
+   (<MAP_TYPE>
+   <KW_COLON>)?
+   <KW_LEFT_CURLY>
+     (
+        ( t=<DOUBLE_QUOTE_LITERAL> <KW_COLON> msv=tcValue() )
+        {
+           s=ParserSupport.unescapeQuoted(t.image.trim());
+           ret.put(s, msv.getType(), msv.getValue());
+        }
+        (
+           <KW_COMMA> t=<DOUBLE_QUOTE_LITERAL> <KW_COLON> msv=tcValue()
+           {
+              s=ParserSupport.unescapeQuoted(t.image.trim());
+              ret.put(s, msv.getType(), msv.getValue());
+           }
+        ) *
+     )?
+   <KW_RIGHT_CURLY>
+   {
+      return new MutableSonValue(SonType.MAP, ret);
+   }
+}
+
+MutableSonValue sonNext():
+{
+    MutableSonValue m=null;
+}
+{
+    (
+       m=sonValue() | <EOF>
+    )
+    { return m; }
+}
+
+MutableSonMap nextMap():
+{
+    MutableSonValue m=null;
+}
+{
+    (
+       m=sonMap() | <EOF>
+    )
+    { return m == null ? null : m.mapValue(); }
+}
+
+MutableSonList nextList():
+{
+    MutableSonValue m=null;
+}
+{
+    (
+       m=sonList() | <EOF>
+    )
+    { return m == null ? null : m.listValue(); }
+}
+
+MutableSonValue nextTC():
+{
+    MutableSonValue m=null;
+}
+{
+    (
+       m=sonValue() | <EOF>
+    )
+    { return m; }
+}
+
+/*
+	traversal := (<field> | <array>) subref?
+	subref := ( . <mapRef> ) | ( <array> ) subref?
+	array := [ <arrspec> ]
+	<field> := <alphastring>
+
+ */
+

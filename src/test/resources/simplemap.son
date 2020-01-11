@@ -1,0 +1,31 @@
+{"key1":true,"k2":short:12,"ffkey3":int:12,"keloy4":12,"kedsfy5":float:13.0f,"keddy6":13.0d,"key7hh":'&',"key84":"some string","key9gg":bytes:10#AQcEBQ==,"key10o":utc:1578684482258,"kelly11":null,"kerry12":uuid:884cee80-2026-4489-b6de-1b9e2ab688fc}
+{
+  "key1" : true,
+  "k2" : short : 12,
+  "ffkey3" : int : 12,
+  "keloy4" : 12,
+  "kedsfy5" : float : 13.0f,
+  "keddy6" : 13.0d,
+  "key7hh" : '&',
+  // to test comments
+  "key84" : "some string",
+  "key9gg" : bytes : 10#AQcEBQ==,
+  "key10o" : utc : 1578684482258,
+  "kelly11" : null,
+  "kerry12" : uuid : 884cee80-2026-4489-b6de-1b9e2ab688fc
+}
+{"key1":bool:true,"k2":short:12,"ffkey3":int:12,"keloy4":long:12,"kedsfy5":float:13.0f,"keddy6":double:13.0d,"key7hh":char:'&',"key84":string:"some string","key9gg":bytes:10#AQcEBQ==,"key10o":utc:1578684482258,"kelly11":null:null,"kerry12":uuid:884cee80-2026-4489-b6de-1b9e2ab688fc}
+{
+  "key1" : bool : true,
+  "k2" : short : 12,
+  "ffkey3" : int : 12,
+  "keloy4" : long : 12,
+  "kedsfy5" : float : 13.0f,
+  "keddy6" : double : 13.0d,
+  "key7hh" : char : '&',
+  "key84" : string : "some string",
+  "key9gg" : bytes : 10#AQcEBQ==,
+  "key10o" : utc : 1578684482258,
+  "kelly11" : null : null,
+  "kerry12" : uuid : 884cee80-2026-4489-b6de-1b9e2ab688fc
+}

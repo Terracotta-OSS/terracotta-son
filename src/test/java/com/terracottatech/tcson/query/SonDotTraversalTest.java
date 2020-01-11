@@ -1,0 +1,211 @@
+/*
+ * Copyright (c) 2011-2018 Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA, and/or its subsidiaries and/or its affiliates and/or their licensors.
+ * Use, reproduction, transfer, publication or disclosure is prohibited except as specifically provided for in your License Agreement with Software AG.
+ */
+package com.terracottatech.tcson.query;
+
+import com.terracottatech.tcson.MutableSonList;
+import com.terracottatech.tcson.MutableSonMap;
+import com.terracottatech.tcson.Son;
+import com.terracottatech.tcson.SonParser;
+import com.terracottatech.tcson.SonType;
+import com.terracottatech.tcson.SonValue;
+import com.terracottatech.tcson.parser.query.ParseException;
+import com.terracottatech.tcson.reading.ReadableSonValue;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.List;
+
+import static com.terracottatech.tcson.Son.writeableList;
+import static com.terracottatech.tcson.Son.writeableMap;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+public class SonDotTraversalTest {
+  @Test
+  public void testArrayThenMap() throws ParseException {
+    MutableSonList list = writeableList().builder().add("test12").add(writeableMap().builder()
+                                                                                    .put("one", 1)
+                                                                                    .put("two", "two")
+                                                                                    .put("mappy", writeableList().builder()
+                                                                                                                 .add("hey")
+                                                                                                                 .add("bar")
+                                                                                                                 .get())
+                                                                                    .get()).get();
+
+    SonDotTraversal t = Son.dotParser().parse("[0]");
+    List<SonValue> got = t.matches(list, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).stringValue(), is("test12"));
+
+    t = Son.dotParser().parse("[].one");
+    got = t.matches(list, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).intValue(), is(1));
+
+    t = Son.dotParser().parse("[].two");
+    got = t.matches(list, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).stringValue(), is("two"));
+
+    t = Son.dotParser().parse("[0-9].two");
+    got = t.matches(list, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).stringValue(), is("two"));
+
+    t = Son.dotParser().parse("[].mappy[0,1]");
+    got = t.matches(list, false);
+    assertThat(got.size(), is(2));
+    assertThat(got.get(0).stringValue(), is("hey"));
+    assertThat(got.get(1).stringValue(), is("bar"));
+
+  }
+
+  @Test
+  public void testMapThenArray() throws ParseException {
+    MutableSonMap map = writeableMap().builder().put("test12", 10l).put("il", writeableList().builder()
+                                                                                             .add(1)
+                                                                                             .add(2)
+                                                                                             .add(writeableMap().builder()
+                                                                                                                .put("hey", "bar")
+                                                                                                                .get())
+                                                                                             .get()).get();
+
+    SonDotTraversal t = Son.dotParser().parse("il[2].hey");
+    List<SonValue> got = t.matches(map, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).stringValue(), is("bar"));
+
+    t = Son.dotParser().parse("il[1,2].hey");
+    got = t.matches(map, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).stringValue(), is("bar"));
+
+    t = Son.dotParser().parse("il[]");
+    got = t.matches(map, false);
+    assertThat(got.size(), is(3));
+    assertThat(got.get(0).intValue(), is(1));
+    assertThat(got.get(1).intValue(), is(2));
+    assertThat(got.get(2).getType(), is(SonType.MAP));
+
+    t = Son.dotParser().parse("il[]");
+    got = t.matches(map, true);
+    assertThat(got.size(), is(2));
+    assertThat(got.get(0).intValue(), is(1));
+    assertThat(got.get(1).intValue(), is(2));
+
+  }
+
+  @Test
+  public void testNestedMap() throws ParseException {
+    MutableSonMap map = writeableMap().builder().put("test12", 10l).put("im", writeableMap().builder()
+                                                                                            .put("one", 1)
+                                                                                            .put("two", 2)
+                                                                                            .get()).get();
+    SonDotTraversal t = Son.dotParser().parse("im.two");
+    List<SonValue> got = t.matches(map, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).intValue(), is(2));
+  }
+
+  @Test
+  public void testNestedNestedMap() throws ParseException {
+    MutableSonMap map = writeableMap().builder().put("test12", 10l).put("im", writeableMap().builder()
+                                                                                            .put("one", 1)
+                                                                                            .put("two", 2)
+                                                                                            .put("three", writeableMap()
+                                                                                                            .builder()
+                                                                                                            .put("hey", "bar")
+                                                                                                            .get())
+                                                                                            .get()).get();
+    SonDotTraversal t = Son.dotParser().parse("im.three.hey");
+    List<SonValue> got = t.matches(map, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).stringValue(), is("bar"));
+  }
+
+  @Test
+  public void testPokedex() throws IOException, com.terracottatech.tcson.parser.ParseException, ParseException {
+    try (InputStream is = this.getClass().getResourceAsStream("/pokedex.json")) {
+      SonParser parser = Son.parser().use(new InputStreamReader(is));
+      MutableSonMap rootMap = parser.map();
+      SonDotTraversal m = Son.dotParser().parse("pokemon[7].weaknesses[]");
+      List<SonValue> got = m.matches(rootMap, false);
+      Assert.assertThat(got, Matchers.hasItems(new ReadableSonValue(SonType.STRING, "Electric"), new ReadableSonValue(SonType.STRING, "Grass")));
+      Matcher<Iterable<SonValue>> mm = Matchers.hasItems(Son.of("Electric"), Son.of("Grass"));
+
+      Assert.assertTrue(mm.matches(got));
+    }
+  }
+
+  @Test
+  public void testSimpleArray() throws ParseException {
+    MutableSonList list = writeableList().builder().add(1).add("foo").get();
+    SonDotTraversal t = Son.dotParser().parse("[0]");
+    List<SonValue> got = t.matches(list, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).intValue(), is(1));
+
+    t = Son.dotParser().parse("[]");
+    got = t.matches(list, false);
+    assertThat(got.size(), is(2));
+    assertThat(got.get(0).intValue(), is(1));
+    assertThat(got.get(1).stringValue(), is("foo"));
+  }
+
+  @Test
+  public void testSimpleArrayDiscreteMultiples() throws ParseException {
+    MutableSonList list = writeableList().builder().add(1).add("foo").add(true).get();
+    SonDotTraversal t = Son.dotParser().parse("[0,3]");
+    List<SonValue> got = t.matches(list, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).intValue(), is(1));
+
+    t = Son.dotParser().parse("[2,1]");
+    got = t.matches(list, false);
+    assertThat(got.size(), is(2));
+    assertThat(got.get(0).boolValue(), is(true));
+    assertThat(got.get(1).stringValue(), is("foo"));
+  }
+
+  @Test
+  public void testSimpleArrayRanges() throws ParseException {
+    MutableSonList list = writeableList().builder().add(1).add("foo").add(true).get();
+    SonDotTraversal t = Son.dotParser().parse("[1-1]");
+    List<SonValue> got = t.matches(list, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).stringValue(), is("foo"));
+
+    t = Son.dotParser().parse("[1-9,1]");
+    got = t.matches(list, false);
+    assertThat(got.size(), is(2));
+    assertThat(got.get(0).stringValue(), is("foo"));
+    assertThat(got.get(1).boolValue(), is(true));
+
+    try {
+      t = Son.dotParser().parse("[9-1,1]");
+      t.matches(list, true);
+      Assert.fail();
+    } catch (ParseException e) {
+    }
+  }
+
+  @Test
+  public void testSimpleMap() throws ParseException {
+    MutableSonMap map = writeableMap().builder().put("test12", true).put("flu", "ffy").get();
+    SonDotTraversal t = Son.dotParser().parse("test12");
+    List<SonValue> got = t.matches(map, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).boolValue(), is(true));
+
+    t = Son.dotParser().parse(".");
+    got = t.matches(map, false);
+    assertThat(got.size(), is(2));
+  }
+}

@@ -1,0 +1,225 @@
+= So, Complex Data Types
+C. Schanck (BC) <Chris.Schanck@softwareag.com>
+v1.0, 2020-01-07
+
+Lists, Maps, Arrays, Sorted Lists, etc. Oh my!
+
+We want to express things in complex nested structures, but we want
+access to serialization to be really fast. We want to work with them
+interactively, but read inside them without tons of overhead cost.
+
+== Everyone loves JSON...
+* JSON itself is kinda a mess
+* Not strongly typed.
+* Is really a string based system. Annoying to serialize tightly.
+* If you say you support JSON, you are stuck with a mushy standard, with many odd corners.
+* Can’t afford to tie our type system to a third-party library.
+* But lots of utility in JSON the string representation...
+* lots of publicly available JSON out there
+
+== For CDT<==> binary, any doc format needs
+* Needs to be able to be serialized very quickly
+* Needs interactive mutation as well
+* Needs to be readable *without* deserializing -- lift data elements on demand right out of ByteBuffers
+* Needs to be typed -- at least failing predictably when type mismatches occur
+* Needs to have something akin to JSON’s lists/maps
+
+== “Piles” of data
+
+=== Basic Unit of Human Organization: The Pile 💩
+Drawing from both Runnel and ValuePiles and other things, we have a “Pile” package.
+
+Piles are structured data sequences, which allow for a list of data elements in order,
+followed by a meta stanza that organizes types and sizes of each element.
+
+* Ints (8/16/32/64), bools, varints, floats (32/64), strings, nulls, byte[], and nested Piles
+* Nested Piles are the big deal, each nested pile has its own data block and metadata. (2 types of piles allowed)
+* Piles are serialized entirely in order, no backtracking; closed with a meta block
+* Strongly typed access.
+* Basically a variable sized packed array
+
+=== Again, a Pile is a heterogeneous Array with Typing
+An example Pile ‘p’ can be thought of as an typed array: [ 10 (int), 12L (long), “foo” (string) ]
+....
+p.size() == 3
+p.int32(0) == 10
+p.int64(1) == 12L
+p.string(2) == “foo”
+p.string(0) --> ClassCastException
+p.int64(0) == 10L (upconverts automatically, debatable decision)
+....
+
+=== Code... ish.
+....
+w = new PileWriter();
+w.int8((byte)10);
+w.str(“hello”);
+w.bool(true);
+sub = w.pile();
+sub.str(“inner”);
+sub.zigzag32(10020);
+sub.end();
+w.end();
+
+buf=w.getBuffer();
+
+rdr = new PileReader(buf);
+byte i = rdr.int8(0); // works, returns 10
+String j = rdr.str(0); // throws exception
+inner = rdr.pile1(3);
+String k = inner.str(0); // returns “inner”
+
+inner.count() == 1
+
+rdr.count() == 4
+....
+
+=== More Details
+* int8, int16, int32, int64, bool, null, float32, float64, char (fixed size)
+* zigzag32, zigzag64 (variable encoded signed ints, 1-9 bytes)
+** int8/int16/int32/zigzag32 can be read as int32
+** int8/int16/int32/zigzag32/int64/zigzag64 can be read as int64
+* string, as you might expect (var size)
+* (signifier, byte[]) pair: extra byte “signifier” for typing arrays.
+* Nested piles, 2 types, variable size.
+
+Lots of bit twiddling tricks to save space. Fixed size ones need no size entry in metadata
+block. Highly dense structure, but every element completely randomly accessible with only
+metadata deserialization.
+
+=== So that’s great, but primitive, right?
+* Intentional. Not a thing most people will interact with.
+* Tried to build the smallest thing that was useful.
+* Very testable, easily to understand.
+* No third party dependencies, only real code lift was our StringTool class.
+** Clifford still has the fastest String->ByteBuffer code in the land!
+* Only existed to let me build something far more useful on top of it.
+
+== “Son” of a gun
+
+=== Not JSON, just SON.
+So, how do we get from low level Piles, to something JSON-esque?
+
+. Binary friendly, type extensible, compact and *fast*?
+. Maps and lists, and compact and *fast*?
+. Deal efficiently with repeated string key names (but compact and *fast*)?
+. Useful for CDTs <==> binary interchange (messaging, storage at rest, mutable structures,
+text representation), still needs to be fast (and *compact*)!
+. Terracotta-SON? *TC-SON*
+
+=== Built over Piles, but with more structure...
+. Streaming writer writes the same sort of data as piles, but as they are written...
+. Every map/list has a metadata stanza of typing. (this happens in the pile)
+. Every map gets a meta data block of <keyId>::<element offset>
+. Top level maps also have keep track of names used as keys in maps across all maps,
+included nested maps.
+. At the end of the top level Map, write the table of <names>::<key id>
+. High level, more complicated than that, but suffices for explanation.
+. Deserialization involves lazily materializing metadata, then accessing.
+
+=== SonMaps and SonLists and SonValues
+....
+SonMap implements Iterable<SonMapValue>{
+   SonMapValue get(String name);
+   size();
+   ...
+}
+
+SonList implements Iterable<SonValue> {
+   SonValue get(int idx);
+   size();
+   ...
+}
+
+SonValue{
+   SonType getType();
+   int intValue();
+   String stringValue();
+   SonMap mapValue();
+   SonList listValue();
+   ...
+}
+....
+This gives you type-checked access to values.
+
+=== With apologies to Baskin Robbins, 3 not 31 flavors.
+* StreamingSonMapWriter & StreamingSonListWriter
+** Write in order of values. Very fast for serialization to a buffer
+** Manages an resizable byte buffer
+* ReadableSonMap and ReadableSonList
+** Laid over a buffer
+** Provides read access to any element, no matter how nested, without only metadat deser.
+** Can be turned into ...
+* MutableSonMap & MutableSonList
+** Fully mutable, in memory representation, no buffer involved
+** Good for interactive mutation
+** builders included as well
+** Mutable Maps and Lists are serializable as well.
+** Can be turned into a buffer, suitable for ReadableSonMap.
+
+So you can move from writing only, to read only buffer-based,
+to mutable and back willy nilly.
+
+All the access to all the publicly intended API is through the
+Son.java interface, which as static factory methods
+for everything.
+
+=== Extra types...
+You can use the byte[] ‘signifier’ to overlay further types
+
+For example, added:
+* Date (UTC, millis accuracy)
+** 8 byte long + 1 signifier byte.
+* UUID - 2 longs
+** 16 bytes + 1 signifier byte)
+
+Both Date and UUID are supported in the parser and pretty printers.
+Reserved -1 ... -128 for internal SON usage, 0 means plain byte[],
+SON Users could specify >0 as needed for typing
+
+=== Pretty printing
+4 different variants, each can be done compactly (no lin breaks) or
+normally (line breaks).
+
+. SON - normal son printing, only typing info for types that need it
+. SON_VERBOSE - type information for all
+. JSON_EXTENDED - turns non JSON types into strings, or longs (for ints)
+or doubles for floats. Best attempts.
+. JSON_LOSSY - you only get JSON native types.
+
+Accessible via Son.SON_PRINTERS enum
+
+=== Dot notation
+Built a parser and matcher for general text notation matching:
+Simple BNF:
+....
+	dotspec := (<field> | <array>) (subref)*
+	subref := . | ( . <field> ) | ( <array> )
+	array := [ (<arrspec> (, <arrspec>)*)? ]
+    arrspec := <pos number> |
+               <pos number> - <pos number >
+	field := <alphastring>
+....
+
+So, a string like "foo.bar.baz" walks three key->map transitions.
+"foo[0-3,7]" walks one map entry, "foo", then looks for it as an array,
+and matches 0,1,2,3,7 indexes if they exist.
+
+Dot notation here is implemented to walk the *structural* members of
+a map/list, not the primitive types. So you can't match a literal
+string or integer, you can just traverse to a map or list.
+
+You can use [] to wildcard all array entries, and just "." to wildcard all
+map values. See unit tests for more specifics.
+
+Accessible via Son.dotParser() static method.
+
+=== Missing?
+* No enums. Seems dumb, the cost of serializing the class name is prohibitive
+* SonMap is not a java.util.Map, SonList is not a java.util.List
+** seems like the right decision, but debatable I suppose
+
+== Upshot
+We get a rich, mutable list/map structured format, with typing, that is
+also a compact and fast-to-serialize binary-at-rest format, which can
+then be accessed randomly without the need for deserialization.

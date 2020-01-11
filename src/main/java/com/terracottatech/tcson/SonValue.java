@@ -1,0 +1,255 @@
+/*
+ * Copyright (c) 2011-2019 Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA, and/or its subsidiaries and/or its affiliates and/or their licensors.
+ * Use, reproduction, transfer, publication or disclosure is prohibited except as specifically provided for in your License Agreement with Software AG.
+ */
+package com.terracottatech.tcson;
+
+import java.util.Objects;
+import java.util.UUID;
+
+/**
+ * A strongly typed value, used in a SonLists.
+ */
+public abstract class SonValue {
+
+  protected final SonType type;
+  protected final Object value;
+
+  /**
+   * Instantiates a new Son value.
+   *
+   * @param type the type
+   * @param value the value
+   */
+  public SonValue(SonType type, Object value) {
+    type.checkType(value);
+    this.type = type;
+    this.value = value;
+  }
+
+  /**
+   * Get boolean value.
+   *
+   * @return the boolean
+   * @throws ClassCastException if not a boolean.
+   */
+  public boolean boolValue() {
+    checkType(SonType.BOOL);
+    return (boolean) value;
+  }
+
+  /**
+   * Get value as byte.
+   *
+   * @return the byte
+   * @throws ClassCastException if not a byte.
+   */
+  public byte byteValue() {
+    checkType(SonType.BYTE);
+    return (byte) value;
+  }
+
+  protected void checkType(SonType... types) {
+    for (SonType t : types) {
+      if (type == t) {
+        return;
+      }
+    }
+    throw new ClassCastException();
+  }
+
+  /**
+   * Get byte[] value.
+   *
+   * @return the byte [ ]
+   * @throws ClassCastException if not a byte[].
+   */
+  public SonBytes bytesValue() {
+    checkType(SonType.BYTES);
+    return (SonBytes) value;
+  }
+
+  /**
+   * Get char value
+   *
+   * @return the char
+   * @throws ClassCastException if not a char.
+   */
+  public char charValue() {
+    checkType(SonType.CHAR);
+    return (char) value;
+  }
+
+  public UTCMillisDate dateValue() {
+    checkType(SonType.DATE);
+    return (UTCMillisDate) value;
+  }
+
+  /**
+   * Get double value
+   *
+   * @return the double
+   * @throws ClassCastException if not a double.
+   */
+  public double doubleValue() {
+    checkType(SonType.DOUBLE, SonType.FLOAT);
+    return (double) value;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null) {
+      return false;
+    }
+    if (o instanceof SonValue) {
+      SonValue value1 = (SonValue) o;
+      if (type != value1.type) {
+        return false;
+      }
+      switch (type) {
+        case MAP:
+          return mapValue().deepEquals(value1.mapValue());
+        case LIST:
+          return listValue().deepEquals(value1.listValue());
+        case NULL:
+          return true;
+        default:
+          return Objects.equals(value, value1.getValue());
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Get the value
+   *
+   * @return the value
+   */
+  public Object getValue() {
+    return value;
+  }
+
+  /**
+   * Get a SonMap value.
+   *
+   * @return the map
+   * @throws ClassCastException if not a map.
+   */
+  public abstract SonMap<?> mapValue();
+
+  /**
+   * Get a SonList value.
+   *
+   * @return the t
+   * @throws ClassCastException if not a list.
+   */
+  public abstract SonList<?> listValue();
+
+  /**
+   * Get float value.
+   *
+   * @return the float
+   * @throws ClassCastException if not a float.
+   */
+  public float floatValue() {
+    checkType(SonType.FLOAT);
+    return (float) value;
+  }
+
+  /**
+   * Gets type of value.
+   *
+   * @return the type
+   */
+  public SonType getType() {
+    return type;
+  }
+
+  @Override
+  public int hashCode() {
+    switch (type) {
+      case MAP:
+        return mapValue().deepHashCode();
+      case LIST:
+        return listValue().deepHashCode();
+      default:
+        return Objects.hash(type, value);
+    }
+  }
+
+  /**
+   * Get int value
+   *
+   * @return the int
+   * @throws ClassCastException if not a int.
+   */
+  public int intValue() {
+    checkType(SonType.INT, SonType.SHORT, SonType.BYTE);
+    return (int) value;
+  }
+
+  /**
+   * Is this the null value?
+   *
+   * @return
+   */
+  public boolean isNullValue() {
+    return this.type.equals(SonType.NULL);
+  }
+
+  /**
+   * Get long value
+   *
+   * @return the long
+   * @throws ClassCastException if not a long.
+   */
+  public long longValue() {
+    checkType(SonType.LONG, SonType.INT, SonType.SHORT, SonType.BYTE);
+    return (long) value;
+  }
+
+  public Number numberValue() {
+    checkType(SonType.FLOAT, SonType.DOUBLE, SonType.LONG, SonType.INT, SonType.SHORT, SonType.BYTE);
+    return (Number) value;
+  }
+
+  /**
+   * Get value as short
+   *
+   * @return the short
+   * @throws ClassCastException if not a short.
+   */
+  public short shortValue() {
+    checkType(SonType.SHORT, SonType.BYTE);
+    return (short) value;
+  }
+
+  /**
+   * Get String value.
+   *
+   * @return the string
+   * @throws ClassCastException if not a String.
+   */
+  public String stringValue() {
+    checkType(SonType.STRING);
+    return (String) value;
+  }
+
+  @Override
+  public String toString() {
+    return "SonListValue{" + "type=" + type + ", value=" + value + '}';
+  }
+
+  /**
+   * Return UUID value.
+   *
+   * @return
+   */
+  public UUID uuidValue() {
+    return (UUID) value;
+  }
+
+}
