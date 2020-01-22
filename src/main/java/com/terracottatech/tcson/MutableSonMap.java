@@ -81,15 +81,6 @@ public interface MutableSonMap extends SonMap<MutableSonValue.MapValue>, Externa
 
   MutableSonMap remove(String name);
 
-  /**
-   * Ensure a sort order on the map members. Any manipulation after
-   * this might change the sort order, so if sort is important,
-   * do it last.
-   *
-   * @param comparator
-   */
-  void sort(Comparator<? super SonMapValue> comparator);
-
   default ByteBuffer toBuffer() {
     return toBuffer((NameSource) null);
   }

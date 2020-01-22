@@ -193,16 +193,6 @@ public class MutableSonMapImpl implements MutableSonMap {
   }
 
   @Override
-  public synchronized void sort(Comparator<? super SonMapValue> comparator) {
-    ArrayList<MutableSonValue.MapValue> list = new ArrayList<>(map.values());
-    list.sort(comparator);
-    map.clear();
-    for (MutableSonValue.MapValue v : list) {
-      map.put(v.getKey(), v);
-    }
-  }
-
-  @Override
   public synchronized ByteBuffer toBuffer(NameSource ns) {
     SonStreamingMapWriter<Void> w = Son.streamingMapWriter(ns);
     appendTo(w);

@@ -53,4 +53,5 @@ public abstract class SonMapValue extends SonValue {
   public String toString() {
     return "SonMapValue{" + "key='" + key + '\'' + ", type=" + type + ", value=" + value + '}';
   }
+
 }
