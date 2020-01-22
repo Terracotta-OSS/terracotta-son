@@ -255,7 +255,7 @@ public abstract class SonValue implements Comparable<SonValue> {
   @Override
   public int compareTo(SonValue o) {
     int ret = getType().compareTo(o.getType());
-    if(ret!=0) {
+    if(ret==0) {
       // janky, but I know they are all comparable.
       // something to muse on,that value should be comparable.
       ret=((Comparable)value).compareTo(o.value);
