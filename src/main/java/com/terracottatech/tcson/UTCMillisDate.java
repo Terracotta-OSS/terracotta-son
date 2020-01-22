@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  * <p>This is .. a debatable design choice, but means the entire time
  * can be encoded in one long, which does help things a bit.</p>
  */
-public class UTCMillisDate implements Serializable {
+public class UTCMillisDate implements Serializable,Comparable<UTCMillisDate> {
   private static final long serialVersionUID = -1114007623015613648L;
   private final ZonedDateTime ts;
 
@@ -30,6 +30,7 @@ public class UTCMillisDate implements Serializable {
     Objects.requireNonNull(incoming);
     this.ts = trim(incoming.withZoneSameInstant(ZoneOffset.UTC));
   }
+
 
   private ZonedDateTime trim(ZonedDateTime now) {
     return now.truncatedTo(ChronoUnit.MILLIS);
@@ -82,4 +83,10 @@ public class UTCMillisDate implements Serializable {
   public ZonedDateTime zoneDate() {
     return ts;
   }
+
+  @Override
+  public int compareTo(UTCMillisDate o) {
+    return Long.compare(utcMillis(), o.utcMillis());
+  }
+
 }

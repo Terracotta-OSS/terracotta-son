@@ -13,7 +13,7 @@ import java.util.Objects;
  * Important to note that the ByteBuffer held here is a *view* into
  * the underlying buffer, in the case of a readable map.
  */
-public class SonBytes implements Serializable {
+public class SonBytes implements Serializable, Comparable<SonBytes> {
   private static final long serialVersionUID = -3339264057019526820L;
   private final ByteBuffer buffer;
   private final byte signifier;
@@ -79,5 +79,14 @@ public class SonBytes implements Serializable {
     byte[] b = new byte[obj.remaining()];
     obj.slice().get(b);
     return Base64.getEncoder().encodeToString(b);
+  }
+
+  @Override
+  public int compareTo(SonBytes o) {
+    int ret = Byte.compare(signifier, o.signifier);
+    if (ret == 0) {
+      ret = buffer.slice().compareTo(o.buffer.slice());
+    }
+    return ret;
   }
 }

@@ -10,7 +10,7 @@ import java.util.UUID;
 /**
  * A strongly typed value, used in a SonLists.
  */
-public abstract class SonValue {
+public abstract class SonValue implements Comparable<SonValue> {
 
   protected final SonType type;
   protected final Object value;
@@ -252,4 +252,14 @@ public abstract class SonValue {
     return (UUID) value;
   }
 
+  @Override
+  public int compareTo(SonValue o) {
+    int ret = getType().compareTo(o.getType());
+    if(ret!=0) {
+      // janky, but I know they are all comparable.
+      // something to muse on,that value should be comparable.
+      ret=((Comparable)value).compareTo(o.value);
+    }
+    return ret;
+  }
 }
