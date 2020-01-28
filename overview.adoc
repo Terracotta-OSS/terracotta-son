@@ -193,24 +193,27 @@ Accessible via Son.SON_PRINTERS enum
 Built a parser and matcher for general text notation matching:
 Simple BNF:
 ....
-	dotspec := (<field> | <array>) (subref)*
-	subref := . | ( . <field> ) | ( <array> )
-	array := [ (<arrspec> (, <arrspec>)*)? ]
-    arrspec := <pos number> |
-               <pos number> - <pos number >
-	field := <alphastring>
+    <dotspec> := <dotspec1> | <dotspec2>
+    <dotspec1> := (<single ref>) ( <innerpair> )*
+    <dotspec2> := "." ( <innerpair> )*
+    <innerpair> := ("." (<single ref>)? )
+    <single ref> := ( <array ref> | <field ref> )
+    <array ref> := [ (<array spec> (, <array spec>)*)? ]
+    <field ref> := <alphastring>
+    <array spec> := <pos number> | <pos number> - <pos number >
+	<field ref> := <alphastring>
 ....
 
 So, a string like "foo.bar.baz" walks three key->map transitions.
-"foo[0-3,7]" walks one map entry, "foo", then looks for it as an array,
+"foo.[0-3,7]" walks one map entry, "foo", then looks for it as an array,
 and matches 0,1,2,3,7 indexes if they exist.
 
 Dot notation here is implemented to walk the *structural* members of
 a map/list, not the primitive types. So you can't match a literal
 string or integer, you can just traverse to a map or list.
 
-You can use [] to wildcard all array entries, and just "." to wildcard all
-map values. See unit tests for more specifics.
+You can use [] to wildcard all array entries, and just an empty string
+between "."'s to wildcard all map values. See unit tests for more specifics.
 
 Accessible via Son.dotParser() static method.
 

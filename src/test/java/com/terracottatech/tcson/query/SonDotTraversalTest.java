@@ -28,8 +28,10 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 public class SonDotTraversalTest {
+
+
   @Test
-  public void testArrayThenMap() throws ParseException {
+  public void testArrayThenMap2() throws ParseException {
     MutableSonList list = writeableList().builder().add("test12").add(writeableMap().builder()
                                                                                     .put("one", 1)
                                                                                     .put("two", "two")
@@ -59,7 +61,7 @@ public class SonDotTraversalTest {
     assertThat(got.size(), is(1));
     assertThat(got.get(0).stringValue(), is("two"));
 
-    t = Son.dotParser().parse("[].mappy[0,1]");
+    t = Son.dotParser().parse("[].mappy.[0,1]");
     got = t.matches(list, false);
     assertThat(got.size(), is(2));
     assertThat(got.get(0).stringValue(), is("hey"));
@@ -68,7 +70,7 @@ public class SonDotTraversalTest {
   }
 
   @Test
-  public void testMapThenArray() throws ParseException {
+  public void testMapThenArray2() throws ParseException {
     MutableSonMap map = writeableMap().builder().put("test12", 10l).put("il", writeableList().builder()
                                                                                              .add(1)
                                                                                              .add(2)
@@ -77,24 +79,24 @@ public class SonDotTraversalTest {
                                                                                                                 .get())
                                                                                              .get()).get();
 
-    SonDotTraversal t = Son.dotParser().parse("il[2].hey");
+    SonDotTraversal t = Son.dotParser().parse("il.[2].hey");
     List<SonValue> got = t.matches(map, false);
     assertThat(got.size(), is(1));
     assertThat(got.get(0).stringValue(), is("bar"));
 
-    t = Son.dotParser().parse("il[1,2].hey");
+    t = Son.dotParser().parse("il.[1,2].hey");
     got = t.matches(map, false);
     assertThat(got.size(), is(1));
     assertThat(got.get(0).stringValue(), is("bar"));
 
-    t = Son.dotParser().parse("il[]");
+    t = Son.dotParser().parse("il.[]");
     got = t.matches(map, false);
     assertThat(got.size(), is(3));
     assertThat(got.get(0).intValue(), is(1));
     assertThat(got.get(1).intValue(), is(2));
     assertThat(got.get(2).getType(), is(SonType.MAP));
 
-    t = Son.dotParser().parse("il[]");
+    t = Son.dotParser().parse("il.[]");
     got = t.matches(map, true);
     assertThat(got.size(), is(2));
     assertThat(got.get(0).intValue(), is(1));
@@ -103,7 +105,7 @@ public class SonDotTraversalTest {
   }
 
   @Test
-  public void testNestedMap() throws ParseException {
+  public void testNestedMap2() throws ParseException {
     MutableSonMap map = writeableMap().builder().put("test12", 10l).put("im", writeableMap().builder()
                                                                                             .put("one", 1)
                                                                                             .put("two", 2)
@@ -115,7 +117,7 @@ public class SonDotTraversalTest {
   }
 
   @Test
-  public void testNestedNestedMap() throws ParseException {
+  public void testNestedNestedMap2() throws ParseException {
     MutableSonMap map = writeableMap().builder().put("test12", 10l).put("im", writeableMap().builder()
                                                                                             .put("one", 1)
                                                                                             .put("two", 2)
@@ -131,11 +133,11 @@ public class SonDotTraversalTest {
   }
 
   @Test
-  public void testPokedex() throws IOException, com.terracottatech.tcson.parser.ParseException, ParseException {
+  public void testPokedex2() throws IOException, com.terracottatech.tcson.parser.ParseException, ParseException {
     try (InputStream is = this.getClass().getResourceAsStream("/pokedex.json")) {
       SonParser parser = Son.parser().use(new InputStreamReader(is));
       MutableSonMap rootMap = parser.map();
-      SonDotTraversal m = Son.dotParser().parse("pokemon[7].weaknesses[]");
+      SonDotTraversal m = Son.dotParser().parse("pokemon.[7].weaknesses.[]");
       List<SonValue> got = m.matches(rootMap, false);
       Assert.assertThat(got, Matchers.hasItems(new ReadableSonValue(SonType.STRING, "Electric"), new ReadableSonValue(SonType.STRING, "Grass")));
       Matcher<Iterable<SonValue>> mm = Matchers.hasItems(Son.of("Electric"), Son.of("Grass"));
@@ -145,7 +147,7 @@ public class SonDotTraversalTest {
   }
 
   @Test
-  public void testSimpleArray() throws ParseException {
+  public void testSimpleArray2() throws ParseException {
     MutableSonList list = writeableList().builder().add(1).add("foo").get();
     SonDotTraversal t = Son.dotParser().parse("[0]");
     List<SonValue> got = t.matches(list, false);
@@ -160,7 +162,7 @@ public class SonDotTraversalTest {
   }
 
   @Test
-  public void testSimpleArrayDiscreteMultiples() throws ParseException {
+  public void testSimpleArrayDiscreteMultiples2() throws ParseException {
     MutableSonList list = writeableList().builder().add(1).add("foo").add(true).get();
     SonDotTraversal t = Son.dotParser().parse("[0,3]");
     List<SonValue> got = t.matches(list, false);
@@ -175,7 +177,7 @@ public class SonDotTraversalTest {
   }
 
   @Test
-  public void testSimpleArrayRanges() throws ParseException {
+  public void testSimpleArrayRanges2() throws ParseException {
     MutableSonList list = writeableList().builder().add(1).add("foo").add(true).get();
     SonDotTraversal t = Son.dotParser().parse("[1-1]");
     List<SonValue> got = t.matches(list, false);
@@ -197,7 +199,7 @@ public class SonDotTraversalTest {
   }
 
   @Test
-  public void testSimpleMap() throws ParseException {
+  public void testSimpleMap2() throws ParseException {
     MutableSonMap map = writeableMap().builder().put("test12", true).put("flu", "ffy").get();
     SonDotTraversal t = Son.dotParser().parse("test12");
     List<SonValue> got = t.matches(map, false);

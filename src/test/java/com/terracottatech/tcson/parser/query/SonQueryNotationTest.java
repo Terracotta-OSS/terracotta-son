@@ -57,28 +57,28 @@ public class SonQueryNotationTest {
   @Test
   public void testNotation() throws ParseException {
     SonQueryParser p = new SonQueryParser(new StringReader("foo.bar.baz"));
-    List<FieldReference> dot = p.dotSpec();
+    List<FieldReference> dot = p.dotterSpec();
     Assert.assertThat(dot.size(), is(3));
     Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));
     Assert.assertThat(dot.get(1).mapRef().getFieldName(), is("bar"));
     Assert.assertThat(dot.get(2).mapRef().getFieldName(), is("baz"));
 
     p = new SonQueryParser(new StringReader("foo.[0-1]"));
-    dot = p.dotSpec();
-    Assert.assertThat(dot.size(), is(3));
+    dot = p.dotterSpec();
+    System.out.println(dot);
+    Assert.assertThat(dot.size(), is(2));
     Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));
-    Assert.assertThat(dot.get(1).mapRef().isWildcard(), is(true));
-    Assert.assertThat(dot.get(2).arrSpec().getArrayMembers().size(), is(2));
-    Assert.assertThat(dot.get(2).arrSpec().getArrayMembers().get(0), is(0));
-    Assert.assertThat(dot.get(2).arrSpec().getArrayMembers().get(1), is(1));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().size(), is(2));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(0), is(0));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(1), is(1));
 
     p = new SonQueryParser(new StringReader("."));
-    dot = p.dotSpec();
+    dot = p.dotterSpec();
     Assert.assertThat(dot.size(), is(1));
     Assert.assertThat(dot.get(0).mapRef().isWildcard(), is(true));
 
-    p = new SonQueryParser(new StringReader("foo[1-10].bar.baz[].tail"));
-    dot = p.dotSpec();
+    p = new SonQueryParser(new StringReader("foo.[1-10].bar.baz.[].tail"));
+    dot = p.dotterSpec();
     Assert.assertThat(dot.size(), is(6));
     Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));
     Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().size(), is(10));
@@ -89,23 +89,4 @@ public class SonQueryNotationTest {
 
   }
 
-  @Test
-  public void testSubRef() throws ParseException {
-    SonQueryParser p = new SonQueryParser(new StringReader("[]"));
-    FieldReference fr = p.subRef();
-    Assert.assertThat(fr.getType(), is(FieldReference.Type.ARRAY));
-    Assert.assertThat(fr.arrSpec().isWildcard(), is(true));
-
-    p = new SonQueryParser(new StringReader("[9]"));
-    fr = p.subRef();
-    Assert.assertThat(fr.getType(), is(FieldReference.Type.ARRAY));
-    Assert.assertThat(fr.arrSpec().isWildcard(), is(false));
-    Assert.assertThat(fr.arrSpec().getArrayMembers().get(0), is(9));
-
-    p = new SonQueryParser(new StringReader(".fugu"));
-    fr = p.subRef();
-    Assert.assertThat(fr.getType(), is(FieldReference.Type.MAP));
-    Assert.assertThat(fr.mapRef().getFieldName(), is("fugu"));
-
-  }
 }

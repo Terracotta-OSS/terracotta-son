@@ -50,70 +50,87 @@ TOKEN [IGNORE_CASE] :
 
 
 /*
-	dotspec := (<field> | <array>) (subref)*
-	subref := ( . <field> ) | ( <array> )
-	array := [ <arrspec> ]
-	<field> := <alphastring>
+    respin:
+
+        <dotspec> := <dotspec1> | <dotspec2>
+        <dotspec1> := (<single ref>) ( <innerpair> )*
+        <dotspec2> := "." ( <innerpair> )*
+        <innerpair> := ("." (<single ref>)? )
+        <single ref> := ( <array ref> | <field ref> )
+        <array ref> := [ <arrspec> ]
+        <field ref> := <alphastring>
 
  */
 
-List<FieldReference> dotSpec():
+List<FieldReference> dotterSpec():
 {
-   FieldReference fr=null;
-   List<FieldReference> subs;
-   List<FieldReference> ret=new ArrayList<>();
+  List<FieldReference> ret=new ArrayList();
 }
 {
    (
-       (
-           (
-              <KW_PERIOD> { ret.add(new FieldReference()); }
-           )
-           |
-           (
-              (
-                 fr=fieldComponent() { ret.add(fr); }
-              )
-              |
-              (
-                 fr=arraySpec() { ret.add(fr); }
-              )
-          )
-      )
-      (
-          fr=subRef() { ret.add(fr); }
-      ) *
+      ret = dotspec1()
+      | ret=dotspec2()
    )
-   {
-      return ret;
-   }
+   { return ret; }
 }
 
-FieldReference subRef():
+List<FieldReference> dotspec1():
+{
+  List<FieldReference> ret=new ArrayList<>();
+  FieldReference fr=null;
+}
+{
+   (
+      fr = singleRef() { ret.add(fr); }
+      (
+         fr=innerPair() { ret.add(fr); }
+      )*
+   )
+   { return ret; }
+}
+
+List<FieldReference> dotspec2():
+{
+  List<FieldReference> ret=new ArrayList<>();
+  FieldReference fr=null;
+}
+{
+   (
+      <KW_PERIOD> { ret.add(new FieldReference()); }
+      (
+         fr=innerPair() { ret.add(fr); }
+      )*
+   )
+   { return ret; }
+}
+
+FieldReference innerPair():
 {
    FieldReference fr=null;
-   String s;
-   List<Integer> arr;
+}
+{
+    (
+       <KW_PERIOD>
+       ( fr=singleRef() )?
+    )
+    { return fr!=null?fr:new FieldReference(); }
+}
+
+FieldReference singleRef():
+{
+   FieldReference fr=null;
 }
 {
    (
        (
-          <KW_PERIOD>
-          (fr=fieldComponent())?
+          fr=fieldComponent()
        )
-       {
-          if(fr==null) {
-             fr=new FieldReference();
-          }
-       }
        |
        (
           fr=arraySpec()
        )
    )
-   {
-      return fr;
-   }
+   { return fr; }
 }
 
 FieldReference fieldComponent():

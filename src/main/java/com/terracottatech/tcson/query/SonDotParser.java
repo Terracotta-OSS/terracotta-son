@@ -26,7 +26,7 @@ public class SonDotParser {
     List<FieldReference> spec;
     synchronized (this) {
       parser.ReInit(reader);
-      spec = parser.dotSpec();
+      spec = parser.dotterSpec();
     }
     return new SonDotTraversal(spec);
   }
