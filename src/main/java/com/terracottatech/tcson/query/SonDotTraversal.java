@@ -28,6 +28,10 @@ public class SonDotTraversal {
     this.spec = spec;
   }
 
+  public List<FieldReference> getTraversalSpec() {
+    return spec;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
