@@ -186,7 +186,7 @@ public class SonDotTraversalTest {
 
     t = Son.dotParser().parse("[1-9,1]");
     got = t.matches(list, false);
-    assertThat(got.size(), is(2));
+    assertThat(got.size(), is(3));
     assertThat(got.get(0).stringValue(), is("foo"));
     assertThat(got.get(1).boolValue(), is(true));
 

@@ -104,7 +104,6 @@ public class SonDotTraversal {
       next.clear();
     }
     List<SonValue> ret = current.stream()
-                                .distinct()
                                 .filter(sv -> !terminalsOnly ||
                                               (sv.getType() != SonType.LIST &&
                                                sv.getType() != SonType.MAP))

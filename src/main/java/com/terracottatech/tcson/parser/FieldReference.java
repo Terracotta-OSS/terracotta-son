@@ -6,8 +6,10 @@ package com.terracottatech.tcson.parser;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class FieldReference {
   public static class MapReference {
@@ -60,7 +62,7 @@ public class FieldReference {
     private final String name;
 
     public ArraySpec(List<Integer> arraySpec) {
-      ArrayList<Integer> mine = new ArrayList<>(arraySpec);
+      List<Integer> mine = new ArrayList<>(arraySpec);
       this.arraySpec = Collections.unmodifiableList(mine);
       this.name = stringVariant(arraySpec);
     }
