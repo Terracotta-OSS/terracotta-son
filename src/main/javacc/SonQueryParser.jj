@@ -11,8 +11,10 @@ PARSER_BEGIN(SonQueryParser)
 package com.terracottatech.tcson.parser.query;
 
 import com.terracottatech.tcson.parser.FieldReference;
+import com.terracottatech.tcson.parser.ParserSupport;
 
 import java.util.List;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class SonQueryParser
@@ -23,8 +25,8 @@ PARSER_END(SonQueryParser)
 
 TOKEN [ IGNORE_CASE ] :
 {
-  < KW_LSQUARE : "[" >
-  | < KW_RSQUARE : "]" >
+  < #KW_LSQUARE : "[" >
+  | < #KW_RSQUARE : "]" >
   | < KW_COMMA : "," >
   | < KW_COLON : ":" >
   | < KW_PERIOD : "." >
@@ -40,14 +42,16 @@ SKIP :
 
 TOKEN [IGNORE_CASE] :
 {
- <#DIGIT: ["0"-"9"] >
- | <#ALPHA: ["a"-"z"] | "-" | "_" >
- | <#ALPHANUM: <DIGIT> | <ALPHA> >
- | <INT_NUMBER: (<DIGIT>)+ >
- | <INT_SPAN: <INT_NUMBER> "-" <INT_NUMBER> >
- | <STRING_LITERAL: <ALPHA> (<ALPHANUM>)*>
+  <STRING_LITERAL: ( <ESCAPE_CHAR> | <ALPHA> )+>
+ | <ARRSPEC: <KW_LSQUARE> <_WHITESPACE> ( <ARRPART> <_WHITESPACE> (<KW_COMMA> <_WHITESPACE> <ARRPART>)* ) ? <_WHITESPACE> <KW_RSQUARE> >
+ | <#INT_SPAN: <INT_NUMBER> "-" <INT_NUMBER> >
+ | <#DIGIT: ["0"-"9"] >
+ | <#INT_NUMBER: (<DIGIT>)+ >
+ | <#ARRPART: <INT_NUMBER> | <INT_SPAN> >
+ | <#ALPHA: ~["\\", ".", "[", "]"] >
+ | <#ESCAPE_CHAR: "\\" ["[", "\\", "]", ".", "u"]>
+ | <#_WHITESPACE: ( " " | "\t" | "\n" | "\r" | "\u3000")* >
 }
-
 
 /*
     respin:
@@ -139,65 +143,26 @@ FieldReference fieldComponent():
 }
 {
 
-   t1=<STRING_LITERAL> { return new FieldReference(t1.image.trim()); }
-}
-
-List<Integer> arrayPart():
-{
-   Token t1;
-   Token t2=null;
-   List<Integer> list = new ArrayList<>();
-}
-{
-   (
-       (
-         t1=<INT_SPAN>
-         {
-            String[] parts=t1.image.trim().split("-");
-            int from = Integer.parseInt(parts[0].trim());
-            int to = Integer.parseInt(parts[1].trim());
-            if(from>to || from<0 || to <0) {
-               throw new ParseException("Invalid array spans: "+t1.image);
-            }
-            for(int i=from;i<=to;i++) {
-               list.add(i);
-            }
-         }
-       )
-       |
-       (
-          t1=<INT_NUMBER>
-          {
-            int p = Integer.parseInt(t1.image.trim());
-            list.add(p);
-          }
-       )
-    )
-    { return list; }
+   t1=<STRING_LITERAL> {
+      try {
+         return new FieldReference(ParserSupport.unescapeUnquoted(t1.image.trim()));
+      } catch(IOException e) {
+         throw new ParseException(e.getMessage());
+      }
+   }
 }
 
 FieldReference arraySpec():
 {
    List<Integer> list = new ArrayList<>();
-   List<Integer> subList;
+   Token t1;
 }
 {
    (
-      <KW_LSQUARE>
-      (
-         subList=arrayPart()
-         {
-           list.addAll(subList);
-         }
-         (
-             <KW_COMMA>
-             subList=arrayPart()
-             {
-               list.addAll(subList);
-             }
-         )*
-      )?
-      <KW_RSQUARE>
+      t1=<ARRSPEC>
+      {
+         list=ParserSupport.parseArraySpec(t1.image);
+      }
    )
    { return new FieldReference(list); }
 }
