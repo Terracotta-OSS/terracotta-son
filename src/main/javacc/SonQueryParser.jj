@@ -72,69 +72,67 @@ List<FieldReference> dotterSpec():
 }
 {
    (
-      ret = dotspec1()
-      | ret=dotspec2()
+      dotspec1(ret)
+      | dotspec2(ret)
    )
    { return ret; }
 }
 
-List<FieldReference> dotspec1():
+void dotspec1(List<FieldReference> ret):
 {
-  List<FieldReference> ret=new ArrayList<>();
   FieldReference fr=null;
 }
 {
    (
-      fr = singleRef() { ret.add(fr); }
+      singleRef(ret)
       (
-         fr=innerPair() { ret.add(fr); }
+         innerPair(ret)
       )*
    )
-   { return ret; }
 }
 
-List<FieldReference> dotspec2():
+void dotspec2(List<FieldReference> ret):
 {
-  List<FieldReference> ret=new ArrayList<>();
   FieldReference fr=null;
 }
 {
    (
       <KW_PERIOD> { ret.add(new FieldReference()); }
       (
-         fr=innerPair() { ret.add(fr); }
+         innerPair(ret)
       )*
    )
-   { return ret; }
 }
 
-FieldReference innerPair():
+void innerPair(List<FieldReference> ret):
 {
-   FieldReference fr=null;
+   int sz=ret.size();
 }
 {
     (
        <KW_PERIOD>
-       ( fr=singleRef() )?
+       (
+          singleRef(ret)
+       )?
     )
-    { return fr!=null?fr:new FieldReference(); }
+    { if(ret.size()==sz) { ret.add(new FieldReference()); } }
 }
 
-FieldReference singleRef():
+void singleRef(List<FieldReference> ret):
 {
    FieldReference fr=null;
 }
 {
    (
        (
-          fr=fieldComponent()
+          fr=fieldComponent() { ret.add(fr); }
+          ( fr=arraySpec() { ret.add(fr); })*
        )
        |
        (
-          fr=arraySpec()
+          (fr=arraySpec() { ret.add(fr); })+
        )
    )
-   { return fr; }
 }
 
 FieldReference fieldComponent():

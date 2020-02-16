@@ -65,12 +65,38 @@ public class SonQueryNotationTest {
 
     p = new SonQueryParser(new StringReader("foo.[0-1]"));
     dot = p.dotterSpec();
-    System.out.println(dot);
+    //System.out.println(dot);
     Assert.assertThat(dot.size(), is(2));
     Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));
     Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().size(), is(2));
     Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(0), is(0));
     Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(1), is(1));
+
+    p = new SonQueryParser(new StringReader("foo.[0-1][4]"));
+    dot = p.dotterSpec();
+    Assert.assertThat(dot.size(), is(3));
+    Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().size(), is(2));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(0), is(0));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(1), is(1));
+    Assert.assertThat(dot.get(2).arrSpec().getArrayMembers().get(0), is(4));
+
+    p = new SonQueryParser(new StringReader("foo[0-1]"));
+    dot = p.dotterSpec();
+    Assert.assertThat(dot.size(), is(2));
+    Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().size(), is(2));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(0), is(0));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(1), is(1));
+
+    p = new SonQueryParser(new StringReader("foo[0-1][4]"));
+    dot = p.dotterSpec();
+    Assert.assertThat(dot.size(), is(3));
+    Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().size(), is(2));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(0), is(0));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(1), is(1));
+    Assert.assertThat(dot.get(2).arrSpec().getArrayMembers().get(0), is(4));
 
     p = new SonQueryParser(new StringReader("."));
     dot = p.dotterSpec();
@@ -78,6 +104,36 @@ public class SonQueryNotationTest {
     Assert.assertThat(dot.get(0).mapRef().isWildcard(), is(true));
 
     p = new SonQueryParser(new StringReader("foo.[1-10].bar.baz.[].tail"));
+    dot = p.dotterSpec();
+    Assert.assertThat(dot.size(), is(6));
+    Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().size(), is(10));
+    Assert.assertThat(dot.get(2).mapRef().getFieldName(), is("bar"));
+    Assert.assertThat(dot.get(3).mapRef().getFieldName(), is("baz"));
+    Assert.assertThat(dot.get(4).arrSpec().isWildcard(), is(true));
+    Assert.assertThat(dot.get(5).mapRef().getFieldName(), is("tail"));
+
+    p = new SonQueryParser(new StringReader("foo[1-10].bar.baz.[].tail"));
+    dot = p.dotterSpec();
+    Assert.assertThat(dot.size(), is(6));
+    Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().size(), is(10));
+    Assert.assertThat(dot.get(2).mapRef().getFieldName(), is("bar"));
+    Assert.assertThat(dot.get(3).mapRef().getFieldName(), is("baz"));
+    Assert.assertThat(dot.get(4).arrSpec().isWildcard(), is(true));
+    Assert.assertThat(dot.get(5).mapRef().getFieldName(), is("tail"));
+
+    p = new SonQueryParser(new StringReader("foo.[1-10].bar.baz[].tail"));
+    dot = p.dotterSpec();
+    Assert.assertThat(dot.size(), is(6));
+    Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));
+    Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().size(), is(10));
+    Assert.assertThat(dot.get(2).mapRef().getFieldName(), is("bar"));
+    Assert.assertThat(dot.get(3).mapRef().getFieldName(), is("baz"));
+    Assert.assertThat(dot.get(4).arrSpec().isWildcard(), is(true));
+    Assert.assertThat(dot.get(5).mapRef().getFieldName(), is("tail"));
+
+    p = new SonQueryParser(new StringReader("foo[1-10].bar.baz[].tail"));
     dot = p.dotterSpec();
     Assert.assertThat(dot.size(), is(6));
     Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("foo"));

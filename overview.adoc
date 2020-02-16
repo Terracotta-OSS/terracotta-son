@@ -191,13 +191,13 @@ Accessible via Son.SON_PRINTERS enum
 
 === Dot notation
 Built a parser and matcher for general text notation matching:
-Simple BNF:
+Simple approximate BNF:
 ....
     <dotspec> := <dotspec1> | <dotspec2>
     <dotspec1> := (<single ref>) ( <innerpair> )*
     <dotspec2> := "." ( <innerpair> )*
     <innerpair> := ("." (<single ref>)? )
-    <single ref> := ( <array ref> | <field ref> )
+    <single ref> := ( (<array ref>)+ | <field ref> (<array rev>)* )
     <array ref> := [ (<array spec> (, <array spec>)*)? ]
     <field ref> := <alphastring>
     <array spec> := <pos number> | <pos number> - <pos number >
@@ -207,6 +207,9 @@ Simple BNF:
 So, a string like "foo.bar.baz" walks three key->map transitions.
 "foo.[0-3,7]" walks one map entry, "foo", then looks for it as an array,
 and matches 0,1,2,3,7 indexes if they exist.
+
+Collapsed notations are allowed, such as "foo[0-3][2]" is the same
+as "foo.[0-3].[2]".
 
 Dot notation here is implemented to walk the *structural* members of
 a map/list, not the primitive types. So you can't match a literal
@@ -226,3 +229,109 @@ Accessible via Son.dotParser() static method.
 We get a rich, mutable list/map structured format, with typing, that is
 also a compact and fast-to-serialize binary-at-rest format, which can
 then be accessed randomly without the need for deserialization.
+
+== Historical Dev Notes
+
+These are just running notes of how it was developed, of course just in plaintext originally,
+but kept here for ... reasons.
+
+=== UID notes
+	The UUID string representation is as described by this BNF:
+....
+  	UUID                   = <time_low> "-" <time_mid> "-"
+                            <time_high_and_version> "-"
+                            <variant_and_sequence> "-"
+                            <node>
+   time_low               = 4*<hexOctet>
+   time_mid               = 2*<hexOctet>
+   time_high_and_version  = 2*<hexOctet>
+   variant_and_sequence   = 2*<hexOctet>
+   node                   = 6*<hexOctet>
+   hexOctet               = <hexDigit><hexDigit>
+   hexDigit               =
+         "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+         | "a" | "b" | "c" | "d" | "e" | "f"
+         | "A" | "B" | "C" | "D" | "E" | "F"
+....
+
+=== First cut done
+
+	* first, respin this as nested value pile, that makes more sense.
+
+....
+	PileWriter - streaming writer
+	PileReader - random access reader
+	PileUpdater - random access updater (for fixed size elements)
+....
+
+So, tail stanza could be much more efficient
+....
+		needs to have:
+			<varint:count>
+			[
+				<byte:type>{<varint:size>},
+				...
+			]
+			<int:metadata size>
+....
+		* so, compression:
+			** rll encode the type/size stanza?
+				*** for fixed size only
+				*** this would make the internal pile size quite big, unless we got very clever. NO	** better to allow for fixed size array **
+			** encode count in the size?
+			** can we assume metadata size is a byte?
+				*** <size><<2|01 is a byte size 6 bits of size (64 bits max size)
+				*** <size><<2|10 is a short size (2^^14) size == 16k size
+				*** <size><<2|11 is an int size (2^30) bits == more than enough
+			** version is an issue.
+                *** ignore
+
+	we have how many types:	boolean, char, int, long, double, string, barr,
+
+	JSON is, trivially:
+....
+		<doc> := { <element pair> , ... }
+
+		<element pair> :=	<element name> : <element>
+
+		<element name> := {<type>} <dqstring>
+
+		<array> := [ { <element>, ...]
+
+		<element> := <map>
+						| <list>
+						| <char>
+						| <boolean>
+						| <int>
+						| <long>
+						| <double>
+						| <string>
+						| <barr>
+
+		<type> := 'a' | 'c' | 'b' | 'i' | 'l' | 'd' | 's' | 'x' | 'o'
+....
+		except there is no <char>, only <long>/<double>, no <barr>
+
+		so you need {type} to allow for keyhole
+
+		Hmmm. But the writer should be very different, correct?
+....
+		new SonWriter(ByteBuffer)
+			.append("key", "val")
+			.list("key")
+				.val(10)
+				.val("str")
+				.end()
+			.map("name").
+				.append("key", "val")
+				.end()
+			.
+
+		reader=new SonReader(ByteBuffer);
+		reader.keys();
+		reader.get<type>("name");
+	    reader.getInt8("name"); etc.
+....
+
+		scope of property names is ... problematic;	you want to resuse them across levels, but not within.
+
