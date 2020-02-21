@@ -5,6 +5,7 @@
 package com.terracottatech.tcson;
 
 import com.terracottatech.tcson.mutable.MutableSonListImpl;
+import com.terracottatech.tcson.mutable.MutableSonValue;
 
 /**
  * A SonList is a readable, iterable list of SonValue objects.
@@ -20,6 +21,15 @@ public interface SonList<E extends SonValue> extends Iterable<E> {
    * @return the mutable son list
    */
   MutableSonList asMutable();
+
+  default MutableSonList deepCopy() {
+    MutableSonList list = Son.writeableList();
+    for (int i = 0; i < this.size(); i++) {
+      E val = this.get(i);
+      list.add(i, new MutableSonValue(val.getType(), val.getType().dupValue(val.getValue())));
+    }
+    return list;
+  }
 
   SonValue asSonValue();
 

@@ -81,6 +81,20 @@ public class SonQueryNotationTest {
     Assert.assertThat(dot.get(1).arrSpec().getArrayMembers().get(1), is(1));
     Assert.assertThat(dot.get(2).arrSpec().getArrayMembers().get(0), is(4));
 
+    p = new SonQueryParser(new StringReader("next_evolution.[].name"));
+    dot = p.dotterSpec();
+    Assert.assertThat(dot.size(), is(3));
+    Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("next_evolution"));
+    Assert.assertThat(dot.get(1).arrSpec().isWildcard(), is(true));
+    Assert.assertThat(dot.get(2).mapRef().getFieldName(), is("name"));
+
+    p = new SonQueryParser(new StringReader("next_evolution[].name"));
+    dot = p.dotterSpec();
+    Assert.assertThat(dot.size(), is(3));
+    Assert.assertThat(dot.get(0).mapRef().getFieldName(), is("next_evolution"));
+    Assert.assertThat(dot.get(1).arrSpec().isWildcard(), is(true));
+    Assert.assertThat(dot.get(2).mapRef().getFieldName(), is("name"));
+
     p = new SonQueryParser(new StringReader("foo[0-1]"));
     dot = p.dotterSpec();
     Assert.assertThat(dot.size(), is(2));

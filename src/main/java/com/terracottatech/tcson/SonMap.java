@@ -4,6 +4,8 @@
  */
 package com.terracottatech.tcson;
 
+import com.terracottatech.tcson.mutable.MutableSonValue;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -21,6 +23,14 @@ public interface SonMap<V extends SonMapValue> extends Iterable<V> {
    * @return the mutable son map
    */
   MutableSonMap asMutable();
+
+  default MutableSonMap deepCopy() {
+    MutableSonMap map = Son.writeableMap();
+    for(V val:this) {
+      map.put(val.getKey(), val.getType(), val.getType().dupValue(val.getValue()));
+    }
+    return map;
+  }
 
   SonValue asSonValue();
 

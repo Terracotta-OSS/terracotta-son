@@ -218,4 +218,33 @@ public enum SonType {
   public abstract void mutableListToBuffered(SonStreamingListWriter<?> list, Object value);
 
   public abstract void mutableMapToBuffered(SonStreamingMapWriter<?> map, String name, Object value);
+
+  public Object dupValue(Object in) {
+    switch (this) {
+      case MAP:
+        SonMap m = (SonMap) in;
+        return m.deepCopy();
+      case LIST:
+        SonList l = (SonList) in;
+        return l.deepCopy();
+      case BYTES:
+        SonBytes sb = (SonBytes) in;
+        return sb.dup();
+      case CHAR:
+      case BOOL:
+      case LONG:
+      case INT:
+      case DOUBLE:
+      case STRING:
+      case UUID:
+      case BYTE:
+      case DATE:
+      case FLOAT:
+      case SHORT:
+      case NULL:
+        return in;
+      default:
+        throw new IllegalStateException();
+    }
+  }
 }

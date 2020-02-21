@@ -48,17 +48,17 @@ public class ReadableSonTest {
     writer.append("blah", 'l');
     writer.append("fl", 32.5f);
     writer.list("lst")
-          .append(10)
-          .append(11)
-          .append("hi!")
-          .appendNull()
-          .map()
-          .append("chris", true)
-          .appendNull("f")
-          .append("bob", "na ra")
-          .endMap()
-          .append(32.5f)
-          .endList();
+      .append(10)
+      .append(11)
+      .append("hi!")
+      .appendNull()
+      .map()
+      .append("chris", true)
+      .appendNull("f")
+      .append("bob", "na ra")
+      .endMap()
+      .append(32.5f)
+      .endList();
     writer.append("barr", (byte) 1, new byte[] { 1, 2, 4, 8 }, 0, 4);
     writer.endMap();
 
@@ -94,36 +94,36 @@ public class ReadableSonTest {
     writer.append("blah", 'l');
     writer.append("fl", 32.5f);
     writer.list("lst")
-          .append(10)
-          .append(11)
-          .append("hi!")
-          .appendNull()
-          .map()
-          .append("chris", true)
-          .append("int", 10001)
-          .appendNull("f")
-          .append("bob", "na ra")
-          .endMap()
-          .append(32.5f)
-          .endList();
+      .append(10)
+      .append(11)
+      .append("hi!")
+      .appendNull()
+      .map()
+      .append("chris", true)
+      .append("int", 10001)
+      .appendNull("f")
+      .append("bob", "na ra")
+      .endMap()
+      .append(32.5f)
+      .endList();
     writer.append("barr", (byte) 1, new byte[] { 1, 2, 4, 8 }, 0, 4);
     writer.endMap();
 
     ByteBuffer buf = writer.buffer().getBuffer();
     buf.flip();
-    ReadableSonMap m = new ReadableSonMapImpl(ns, buf);
+    SonMap m = new ReadableSonMapImpl(ns, buf);
 
     Assert.assertThat(m.get("int").intValue(), is(10));
     Assert.assertThat(m.get("foo").stringValue(), is("happy"));
     Assert.assertThat(m.get("fl").floatValue(), is(32.5f));
     Assert.assertThat(m.get("barr").bytesValue().getSignifier(), is((byte) 1));
     Assert.assertThat(m.get("barr").bytesValue().getBuffer(), is(ByteBuffer.wrap(new byte[] { 1, 2, 4, 8 })));
-    ReadableSonList l = m.get("lst").listValue();
+    SonList l = m.get("lst").listValue();
     Assert.assertThat(l.get(0).intValue(), is(10));
     Assert.assertThat(l.get(1).intValue(), is(11));
     Assert.assertThat(l.get(2).stringValue(), is("hi!"));
     Assert.assertThat(l.get(3).isNullValue(), is(true));
-    ReadableSonMap im = l.get(4).mapValue();
+    SonMap im = l.get(4).mapValue();
 
     Assert.assertThat(im.get("f").isNullValue(), is(true));
     Assert.assertThat(im.get("int").intValue(), is(10001));
@@ -131,6 +131,48 @@ public class ReadableSonTest {
     Assert.assertThat(im.get("chris").boolValue(), is(true));
     Assert.assertThat(l.get(5).floatValue(), is(32.5f));
 
+    MutableSonMap m2 = m.deepCopy();
+    Assert.assertThat(m2.deepEquals(m), is(true));
+    m2.get("lst").listValue().remove(1);
+    Assert.assertThat(m2.deepEquals(m), is(false));
+
+    // check old one
+    Assert.assertThat(m.get("int").intValue(), is(10));
+    Assert.assertThat(m.get("foo").stringValue(), is("happy"));
+    Assert.assertThat(m.get("fl").floatValue(), is(32.5f));
+    Assert.assertThat(m.get("barr").bytesValue().getSignifier(), is((byte) 1));
+    Assert.assertThat(m.get("barr").bytesValue().getBuffer(), is(ByteBuffer.wrap(new byte[] { 1, 2, 4, 8 })));
+    l = m.get("lst").listValue();
+    Assert.assertThat(l.get(0).intValue(), is(10));
+    Assert.assertThat(l.get(1).intValue(), is(11));
+    Assert.assertThat(l.get(2).stringValue(), is("hi!"));
+    Assert.assertThat(l.get(3).isNullValue(), is(true));
+    im = l.get(4).mapValue();
+
+    Assert.assertThat(im.get("f").isNullValue(), is(true));
+    Assert.assertThat(im.get("int").intValue(), is(10001));
+    Assert.assertThat(im.get("bob").stringValue(), is("na ra"));
+    Assert.assertThat(im.get("chris").boolValue(), is(true));
+    Assert.assertThat(l.get(5).floatValue(), is(32.5f));
+
+    m = m2;
+    // check old one
+    Assert.assertThat(m.get("int").intValue(), is(10));
+    Assert.assertThat(m.get("foo").stringValue(), is("happy"));
+    Assert.assertThat(m.get("fl").floatValue(), is(32.5f));
+    Assert.assertThat(m.get("barr").bytesValue().getSignifier(), is((byte) 1));
+    Assert.assertThat(m.get("barr").bytesValue().getBuffer(), is(ByteBuffer.wrap(new byte[] { 1, 2, 4, 8 })));
+    l = m.get("lst").listValue();
+    Assert.assertThat(l.get(0).intValue(), is(10));
+    Assert.assertThat(l.get(1).stringValue(), is("hi!"));
+    Assert.assertThat(l.get(2).isNullValue(), is(true));
+    im = l.get(3).mapValue();
+
+    Assert.assertThat(im.get("f").isNullValue(), is(true));
+    Assert.assertThat(im.get("int").intValue(), is(10001));
+    Assert.assertThat(im.get("bob").stringValue(), is("na ra"));
+    Assert.assertThat(im.get("chris").boolValue(), is(true));
+    Assert.assertThat(l.get(4).floatValue(), is(32.5f));
   }
 
   @Test

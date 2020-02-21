@@ -4,6 +4,8 @@
  */
 package com.terracottatech.tcson;
 
+import com.terracottatech.tcson.mutable.MutableSonValue;
+
 import java.util.Objects;
 import java.util.UUID;
 
