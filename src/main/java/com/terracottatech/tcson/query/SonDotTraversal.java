@@ -61,19 +61,26 @@ public class SonDotTraversal {
       //System.out.println("Checking: " + fr + " vs " + current);
       for (SonValue mv : current) {
         switch (fr.getType()) {
+          case WILD:
+            if (mv.getType() == SonType.MAP) {
+              SonMap<?> map = mv.mapValue();
+              for (SonMapValue v : map) {
+                SonMapValue p = map.get(v.getKey());
+                next.add(p);
+              }
+            } else if (mv.getType() == SonType.LIST) {
+              SonList<?> l = mv.listValue();
+              for (SonValue sv : l) {
+                next.add(sv);
+              }
+            }
+            break;
           case MAP:
             if (mv.getType() == SonType.MAP) {
               SonMap<?> map = mv.mapValue();
-              if (fr.mapRef().isWildcard()) {
-                for (SonMapValue v : map) {
-                  SonMapValue p = map.get(v.getKey());
-                  next.add(p);
-                }
-              } else {
-                mv = map.get(fr.mapRef().getFieldName());
-                if (mv != null) {
-                  next.add(mv);
-                }
+              mv = map.get(fr.mapRef().getFieldName());
+              if (mv != null) {
+                next.add(mv);
               }
             }
             break;
@@ -81,16 +88,8 @@ public class SonDotTraversal {
             if (mv.getType() == SonType.LIST) {
               FieldReference.ArraySpec sp = fr.arrSpec();
               SonList<?> l = mv.listValue();
-              if (sp.isWildcard()) {
-                for (SonValue sv : l) {
-                  next.add(sv);
-                }
-              } else {
-                for (int i : sp.getArrayMembers()) {
-                  if (i < l.size()) {
-                    next.add(l.get(i));
-                  }
-                }
+              for (FieldReference.ArraySlice slice : sp.getArrayMembers()) {
+                next.addAll(slice.extract(l));
               }
             }
             break;
@@ -104,10 +103,10 @@ public class SonDotTraversal {
       next.clear();
     }
     List<SonValue> ret = current.stream()
-                                .filter(sv -> !terminalsOnly ||
-                                              (sv.getType() != SonType.LIST &&
-                                               sv.getType() != SonType.MAP))
-                                .collect(Collectors.toList());
+                           .filter(sv -> !terminalsOnly ||
+                                         (sv.getType() != SonType.LIST &&
+                                          sv.getType() != SonType.MAP))
+                           .collect(Collectors.toList());
     return ret;
   }
 
@@ -118,28 +117,24 @@ public class SonDotTraversal {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    boolean first = true;
     for (FieldReference i : spec) {
       switch (i.getType()) {
+        case WILD:
+          sb.append(".[]");
+          break;
         case MAP:
           FieldReference.MapReference m = i.mapRef();
-          if (m.isWildcard()) {
-            sb.append('.');
-          } else {
-            if (!first) {
-              sb.append('.');
-            }
-            sb.append(m.getFieldName());
-          }
+          sb.append('.');
+          sb.append(m.getFieldName());
           break;
         case ARRAY:
           FieldReference.ArraySpec a = i.arrSpec();
+          sb.append('.');
           sb.append(a.getName());
           break;
         default:
           throw new IllegalStateException();
       }
-      first = false;
     }
     return sb.toString();
   }

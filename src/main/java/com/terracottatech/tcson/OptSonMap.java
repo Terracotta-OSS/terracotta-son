@@ -27,6 +27,7 @@ public class OptSonMap {
     this.map = map;
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Boolean> boolValue(String key) {
     return (Optional<Boolean>) optional(key, SonType.BOOL);
   }
@@ -41,18 +42,22 @@ public class OptSonMap {
     return Optional.empty();
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<SonBytes> bytesValue(String key) {
     return (Optional<SonBytes>) optional(key, SonType.BYTES);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Character> charValue(String key) {
     return (Optional<Character>) optional(key, SonType.CHAR);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Double> doubleValue(String key) {
     return (Optional<Double>) optional(key, SonType.DOUBLE);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Integer> intValue(String key) {
     return (Optional<Integer>) optional(key, SonType.INT);
   }
@@ -69,6 +74,7 @@ public class OptSonMap {
     return OptSonList.EMPTY;
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Long> longValue(String key) {
     return (Optional<Long>) optional(key, SonType.LONG);
   }
@@ -126,14 +132,17 @@ public class OptSonMap {
     return Optional.of(map.size());
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<String> stringValue(String key) {
     return (Optional<String>) optional(key, SonType.STRING);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<UTCMillisDate> utcValue(String key) {
     return (Optional<UTCMillisDate>) optional(key, SonType.DATE);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<UUID> uuidValue(String key) {
     return (Optional<UUID>) optional(key, SonType.UUID);
   }

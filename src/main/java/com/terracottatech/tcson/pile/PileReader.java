@@ -50,8 +50,8 @@ public interface PileReader {
   /**
    * Return the user specified signifier for this byte array
    *
-   * @param idx
-   * @return
+   * @param idx index
+   * @return signifier for this index
    */
   byte byteArraySignifier(int idx);
 

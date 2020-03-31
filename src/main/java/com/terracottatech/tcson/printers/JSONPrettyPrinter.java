@@ -71,9 +71,7 @@ public class JSONPrettyPrinter implements SonPrinter {
     endln(pw);
     String newIndent = indent + indention;
     boolean[] first = new boolean[] { true };
-    stream(l.spliterator(), false).filter(this::isVisible).forEach(ent -> {
-      printListMember(pw, newIndent, first, ent);
-    });
+    stream(l.spliterator(), false).filter(this::isVisible).forEach(ent -> printListMember(pw, newIndent, first, ent));
     endln(pw);
     pw.print(indent(indent) + "]");
   }
@@ -83,9 +81,7 @@ public class JSONPrettyPrinter implements SonPrinter {
     endln(pw);
     String newIndent = indent + indention;
     boolean[] first = new boolean[] { true };
-    stream(m.spliterator(), false).filter(this::isVisible).forEach(ent -> {
-      printMapMember(pw, newIndent, first, ent);
-    });
+    stream(m.spliterator(), false).filter(this::isVisible).forEach(ent -> printMapMember(pw, newIndent, first, ent));
     endln(pw);
     pw.print(indent(indent) + "}");
   }

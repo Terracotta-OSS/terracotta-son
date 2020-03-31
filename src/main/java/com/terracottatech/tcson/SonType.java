@@ -222,10 +222,10 @@ public enum SonType {
   public Object dupValue(Object in) {
     switch (this) {
       case MAP:
-        SonMap m = (SonMap) in;
+        SonMap<?> m = (SonMap<?>) in;
         return m.deepCopy();
       case LIST:
-        SonList l = (SonList) in;
+        SonList<?> l = (SonList<?>) in;
         return l.deepCopy();
       case BYTES:
         SonBytes sb = (SonBytes) in;

@@ -4,12 +4,14 @@
  */
 package com.terracottatech.tcson.parser;
 
+import com.terracottatech.tcson.SonList;
+import com.terracottatech.tcson.SonValue;
+
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class FieldReference {
   public static class MapReference {
@@ -17,10 +19,6 @@ public class FieldReference {
 
     public MapReference(String mapField) {
       this.mapField = mapField;
-    }
-
-    public MapReference() {
-      this.mapField = null;
     }
 
     @Override
@@ -46,57 +44,81 @@ public class FieldReference {
 
     @Override
     public String toString() {
-      if (isWildcard()) {
-        return "MapReference-wildcard";
-      }
       return "MapReference{" + mapField + '}';
     }
+  }
 
-    public boolean isWildcard() {
-      return mapField == null;
+  public static class ArraySlice {
+    private int left;
+    private int right;
+
+    public ArraySlice(int one) {
+      this(one, one);
+    }
+
+    public List<SonValue> extract(SonList<?> l) {
+      int actualLeft = actual(left, l.size());
+      int actualRight = actual(right, l.size());
+      LinkedList<SonValue> vals = new LinkedList<>();
+      for (int i = actualLeft; i <= actualRight && i < l.size(); i++) {
+        if (i >= 0) {
+          vals.add(l.get(i));
+        }
+      }
+      return vals;
+    }
+
+    private int actual(int pos, int size) {
+      if (pos < 0) {
+        pos = size + pos;
+      }
+      if (pos < 0) {
+        return -1;
+      }
+      pos = Math.min(pos, size);
+      return pos;
+    }
+
+    public int getLeft() {
+      return left;
+    }
+
+    public int getRight() {
+      return right;
+    }
+
+    public ArraySlice(int left, int right) {
+      this.left = left;
+      this.right = right;
+    }
+
+    @Override
+    public String toString() {
+      return left + ":" + right;
     }
   }
 
   public static class ArraySpec {
-    private final List<Integer> arraySpec;
+    private final List<ArraySlice> arraySpec;
     private final String name;
 
-    public ArraySpec(List<Integer> arraySpec) {
-      List<Integer> mine = new ArrayList<>(arraySpec);
+    public ArraySpec(List<ArraySlice> arraySpec) {
+      ArrayList<ArraySlice> mine = new ArrayList<>(arraySpec);
       this.arraySpec = Collections.unmodifiableList(mine);
-      this.name = stringVariant(arraySpec);
+      this.name = stringVariant();
     }
 
-    private String stringVariant(List<Integer> spec) {
+    private String stringVariant() {
       StringBuilder sb = new StringBuilder();
-      int[] arr = spec.stream().mapToInt(i -> i.intValue()).toArray();
-      int len = arr.length;
-      int idx = 0, idx2 = 0;
       boolean needsComma = false;
       sb.append('[');
-      while (idx < len) {
-        while (++idx2 < len && arr[idx2] - arr[idx2 - 1] == 1) {
-        }
-        if (idx2 - idx > 2) {
-          if (needsComma) {
-            sb.append(", ");
-          } else {
-            needsComma = true;
-          }
-          sb.append(arr[idx]);
-          sb.append('-');
-          sb.append(arr[idx2 - 1]);
-          idx = idx2;
+      for (ArraySlice al : arraySpec) {
+        if (needsComma) {
+          sb.append(", ");
         } else {
-          for (; idx < idx2; idx++) {
-            if (needsComma) {
-              sb.append(", ");
-            } else {
-              needsComma = true;
-            }
-            sb.append(arr[idx]);
-          }
+          needsComma = true;
         }
+        sb.append(al);
       }
       sb.append(']');
 
@@ -112,7 +134,7 @@ public class FieldReference {
         return false;
       }
       ArraySpec spec = (ArraySpec) o;
-      return arraySpec.equals(spec.arraySpec);
+      return Objects.equals(arraySpec, spec.arraySpec) && Objects.equals(name, spec.name);
     }
 
     public String getName() {
@@ -126,17 +148,10 @@ public class FieldReference {
 
     @Override
     public String toString() {
-      if (isWildcard()) {
-        return "ArraySpec-wildcard";
-      }
-      return "ArraySpec{" + name + " == " + arraySpec + '}';
+      return "ArraySpec{" + name + '}';
     }
 
-    public boolean isWildcard() {
-      return getArrayMembers().isEmpty();
-    }
-
-    public List<Integer> getArrayMembers() {
+    public List<ArraySlice> getArrayMembers() {
       return arraySpec;
     }
   }
@@ -147,18 +162,19 @@ public class FieldReference {
 
   public enum Type {
     MAP,
-    ARRAY
+    ARRAY,
+    WILD
   }
 
-  public FieldReference(List<Integer> arraySpec) {
+  public FieldReference(List<ArraySlice> arraySpec) {
     this.arraySpec = new ArraySpec(arraySpec);
     this.type = Type.ARRAY;
     this.mapRef = null;
   }
 
   public FieldReference() {
-    this.type = Type.MAP;
-    this.mapRef = new MapReference();
+    this.type = Type.WILD;
+    this.mapRef = null;
     this.arraySpec = null;
   }
 
@@ -198,6 +214,10 @@ public class FieldReference {
     return Objects.hash(type, arraySpec, mapRef);
   }
 
+  public boolean isWild() {
+    return getType().equals(Type.WILD);
+  }
+
   public MapReference mapRef() {
     if (type == Type.MAP) {
       return mapRef;
@@ -207,6 +227,15 @@ public class FieldReference {
 
   @Override
   public String toString() {
-    return (type == Type.ARRAY ? arraySpec : mapRef).toString();
+    switch (getType()) {
+      case WILD:
+        return "[]";
+      case ARRAY:
+        return arraySpec.toString();
+      case MAP:
+        return mapRef.toString();
+      default:
+        throw new IllegalStateException();
+    }
   }
 }

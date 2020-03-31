@@ -98,7 +98,6 @@ public class ParserSupport {
       return 4;
     } catch (NumberFormatException nfe) {
       IOException pe = new IOException("invalid hex value for \\u escape");
-      pe.initCause(nfe);
       throw pe;
     }
   }

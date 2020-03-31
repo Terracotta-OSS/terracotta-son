@@ -94,7 +94,7 @@ public interface Son {
   /**
    * Create a parser for JSON to SON or SON to SON.
    *
-   * @return
+   * @return parser
    */
   static SonParser parser() {
     return new SonParser();
@@ -216,7 +216,7 @@ public interface Son {
     return v.asSonValue();
   }
 
-  static SonValue of(SonList v) {
+  static SonValue of(SonList<?> v) {
     return v.asSonValue();
   }
 

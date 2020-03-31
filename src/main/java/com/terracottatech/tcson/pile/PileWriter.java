@@ -114,7 +114,7 @@ public interface PileWriter {
   /**
    * Open a new Pile object.
    *
-   * @param pileType
+   * @param pileType type
    * @return the new pile writer
    */
   PileWriter pile(Pile.Type pileType);

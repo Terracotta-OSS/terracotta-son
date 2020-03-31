@@ -173,7 +173,7 @@ public class MutableSonListImpl implements MutableSonList {
   }
 
   @Override
-  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+  public void readExternal(ObjectInput in) throws IOException {
     int len = in.readInt();
     byte[] dest = new byte[len];
     in.read(dest);
