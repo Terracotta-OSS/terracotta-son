@@ -25,9 +25,10 @@ PARSER_END(SonQueryParser)
 
 TOKEN [ IGNORE_CASE ] :
 {
-  < #KW_LSQUARE : "[" >
-  | < #KW_RSQUARE : "]" >
+  < KW_LSQUARE : "[" >
+  | < KW_RSQUARE : "]" >
   | < KW_COMMA : "," >
+  | < KW_DQUOTE : "\"" >
   | < KW_COLON : ":" >
   | < KW_PERIOD : "." >
 }
@@ -42,125 +43,150 @@ SKIP :
 
 TOKEN [IGNORE_CASE] :
 {
-  <STRING_LITERAL: ( <ESCAPE_CHAR> | <ALPHA> )+>
- | <ARRSPEC: <KW_LSQUARE> <_WHITESPACE> ( <ARRPART> <_WHITESPACE> (<KW_COMMA> <_WHITESPACE> <ARRPART>)* ) ? <_WHITESPACE> <KW_RSQUARE> >
- | <#INT_SPAN: <INT_NUMBER> "-" <INT_NUMBER> >
+   <DQ_LITERAL: <KW_DQUOTE> ( <ESCAPE_CHAR> | <ALPHA> )+ <KW_DQUOTE> >
+ | <SIMPLE_STRING: (["a"-"z", "A"-"Z"]) (["a"-"z", "A"-"Z", "0"-"9", "_"])* >
+ | <#INT_SIGN: ["-", "+"]>
  | <#DIGIT: ["0"-"9"] >
- | <#INT_NUMBER: (<DIGIT>)+ >
- | <#ARRPART: <INT_NUMBER> | <INT_SPAN> >
+ | <INT_NUMBER: (<INT_SIGN>)? (<DIGIT>)+ >
  | <#ALPHA: ~["\\", ".", "[", "]"] >
  | <#ESCAPE_CHAR: "\\" ["[", "\\", "]", ".", "u"]>
  | <#_WHITESPACE: ( " " | "\t" | "\n" | "\r" | "\u3000")* >
 }
 
 /*
-    respin:
+    respin2:
 
-        <dotspec> := <dotspec1> | <dotspec2>
-        <dotspec1> := (<single ref>) ( <innerpair> )*
-        <dotspec2> := "." ( <innerpair> )*
-        <innerpair> := ("." (<single ref>)? )
-        <single ref> := ( <array ref> | <field ref> )
-        <array ref> := [ <arrspec> ]
-        <field ref> := <alphastring>
+        <dotspec> := '.' <singleStep>* <eof>
 
+        <singlestep> := <angleStep> | <quoteStep> | <simpleStep>
+        <angleStep> := '[' ( ']' | ((<arrayStep> <quoteStep> | <simplestep> ) ']'))
+        <quoteStep> := '"' <escapedChars> '"'
+        <simpleStep> := ("a-zA-Z" ("a-zA-Z0-9_)*)
+        <arrayStep> := <arraySingle> (',' <arraySingle>>)*
+        <arraySingle> := <integer> | <integer> ':' <integer>
+        <integer> ('+'|'-')? ( '0' | '1'-'9' ('0'-'9')* )
  */
 
-List<FieldReference> dotterSpec():
+List<FieldReference> dotSpec():
 {
-  List<FieldReference> ret=new ArrayList();
+   ArrayList<FieldReference> list=new ArrayList<>();
+   FieldReference fr;
 }
 {
    (
-      dotspec1(ret)
-      | dotspec2(ret)
+      (<KW_PERIOD>)?
+      (
+         fr = singleStep() { list.add(fr); }
+         (
+            (<KW_PERIOD>)?
+            fr = singleStep() { list.add(fr); }
+         )*
+      )?
+      <EOF>
    )
+   { return list; }
+}
+
+// <singlestep> := <angleStep> | <quoteStep> | <simpleStep>
+FieldReference singleStep():
+{
+  FieldReference ret;
+}
+{
+   ( ret= angleStep() | ret = stringStep() | ret = simpleStep() )
    { return ret; }
 }
 
-void dotspec1(List<FieldReference> ret):
+// <angleStep> := '[' ( ']' | ((<arrayStep> <quoteStep> | <simplestep> ) ']'))
+FieldReference angleStep():
 {
-  FieldReference fr=null;
-}
+   FieldReference ret;
+ }
 {
+   <KW_LSQUARE>
    (
-      singleRef(ret)
+      <KW_RSQUARE> { return new FieldReference(); }
+      |
       (
-         innerPair(ret)
-      )*
+         (
+            ret= arrayStep() | ret= stringStep()
+         )
+         <KW_RSQUARE>
+      ) { return ret; }
    )
 }
 
-void dotspec2(List<FieldReference> ret):
+// <quoteStep> := '"' <escapedChars> '"'
+FieldReference stringStep():
 {
-  FieldReference fr=null;
+   Token t;
 }
 {
+
    (
-      <KW_PERIOD> { ret.add(new FieldReference()); }
-      (
-         innerPair(ret)
-      )*
+     t=<DQ_LITERAL>
    )
-}
-
-void innerPair(List<FieldReference> ret):
-{
-   int sz=ret.size();
-}
-{
-    (
-       <KW_PERIOD>
-       (
-          singleRef(ret)
-       )?
-    )
-    { if(ret.size()==sz) { ret.add(new FieldReference()); } }
-}
-
-void singleRef(List<FieldReference> ret):
-{
-   FieldReference fr=null;
-}
-{
-   (
-       (
-          fr=fieldComponent() { ret.add(fr); }
-          ( fr=arraySpec() { ret.add(fr); })*
-       )
-       |
-       (
-          (fr=arraySpec() { ret.add(fr); })+
-       )
-   )
-}
-
-FieldReference fieldComponent():
-{
-   Token t1;
-}
-{
-
-   t1=<STRING_LITERAL> {
+   {
       try {
-         return new FieldReference(ParserSupport.unescapeUnquoted(t1.image.trim()));
+         return new FieldReference(ParserSupport.unescapeQuoted(t.image));
       } catch(IOException e) {
-         throw new ParseException(e.getMessage());
+         throw new ParseException();
       }
    }
 }
 
-FieldReference arraySpec():
+// <simpleStep> := ("a-zA-Z" ("a-zA-Z0-9_)*)
+FieldReference simpleStep():
 {
-   List<Integer> list = new ArrayList<>();
-   Token t1;
+   Token t;
+}
+{
+
+   ( t=<SIMPLE_STRING> )
+   {
+      return new FieldReference(t.image);
+   }
+}
+
+//<arrayStep> := <arraySingle> (',' <arraySingle>>)*
+FieldReference arrayStep():
+{
+   List<FieldReference.ArraySlice> list = new ArrayList<>();
+   FieldReference.ArraySlice p;
 }
 {
    (
-      t1=<ARRSPEC>
-      {
-         list=ParserSupport.parseArraySpec(t1.image);
-      }
+      p=arraySlice() { list.add(p); }
+      (
+         <KW_COMMA>
+         p=arraySlice() { list.add(p); }
+      )*
    )
    { return new FieldReference(list); }
 }
+
+// <arraySingle> := <integer> | <integer> ':' <integer>
+FieldReference.ArraySlice arraySlice():
+{
+   Token t1=null;
+   Token t2=null;
+
+}
+{
+   ( t1=<INT_NUMBER>
+       (
+         <KW_COLON>
+         t2=<INT_NUMBER>
+       )?
+   )
+   {
+      if(t2==null) {
+         return new FieldReference.ArraySlice(Integer.parseInt(t1.image));
+      } else {
+         FieldReference.ArraySlice ret = new FieldReference.ArraySlice(Integer.parseInt(t1.image),
+            Integer.parseInt(t2.image));
+         return ret;
+      }
+   }
+}
+

@@ -4,8 +4,6 @@
  */
 package com.terracottatech.tcson;
 
-import com.terracottatech.tcson.mutable.MutableSonValue;
-
 import java.util.Objects;
 import java.util.UUID;
 
@@ -196,7 +194,7 @@ public abstract class SonValue implements Comparable<SonValue> {
   /**
    * Is this the null value?
    *
-   * @return
+   * @return true if null
    */
   public boolean isNullValue() {
     return this.type.equals(SonType.NULL);
@@ -248,19 +246,20 @@ public abstract class SonValue implements Comparable<SonValue> {
   /**
    * Return UUID value.
    *
-   * @return
+   * @return uuid
    */
   public UUID uuidValue() {
     return (UUID) value;
   }
 
   @Override
+  @SuppressWarnings( { "raw", "unchecked" })
   public int compareTo(SonValue o) {
     int ret = getType().compareTo(o.getType());
-    if(ret==0) {
+    if (ret == 0) {
       // janky, but I know they are all comparable.
       // something to muse on,that value should be comparable.
-      ret=((Comparable)value).compareTo(o.value);
+      ret = ((Comparable) value).compareTo(o.value);
     }
     return ret;
   }

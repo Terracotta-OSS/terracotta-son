@@ -76,7 +76,7 @@ public interface SonList<E extends SonValue> extends Iterable<E> {
   /**
    * Optional traversal view.
    *
-   * @return
+   * @return list as opt
    */
   default OptSonList opt() {
     return new OptSonList(this);

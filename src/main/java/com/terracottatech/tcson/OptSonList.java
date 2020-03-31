@@ -26,6 +26,7 @@ public class OptSonList {
     Objects.requireNonNull(list);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Boolean> boolValue(int index) {
     return (Optional<Boolean>) optional(index, SonType.BOOL);
   }
@@ -40,22 +41,27 @@ public class OptSonList {
     return Optional.empty();
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Integer> byteValue(int index) {
     return (Optional<Integer>) optional(index, SonType.BYTE);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<SonBytes> bytesValue(int index) {
     return (Optional<SonBytes>) optional(index, SonType.BYTES);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Character> charValue(int index) {
     return (Optional<Character>) optional(index, SonType.CHAR);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Double> doubleValue(int index) {
     return (Optional<Double>) optional(index, SonType.DOUBLE);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Integer> intValue(int index) {
     return (Optional<Integer>) optional(index, SonType.INT);
   }
@@ -74,6 +80,7 @@ public class OptSonList {
     return EMPTY;
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Long> longValue(int index) {
     return (Optional<Long>) optional(index, SonType.LONG);
   }
@@ -118,6 +125,7 @@ public class OptSonList {
     return Optional.empty();
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<Integer> shortValue(int index) {
     return (Optional<Integer>) optional(index, SonType.SHORT);
   }
@@ -129,14 +137,17 @@ public class OptSonList {
     return Optional.of(list.size());
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<String> stringValue(int index) {
     return (Optional<String>) optional(index, SonType.STRING);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<UTCMillisDate> utcValue(int index) {
     return (Optional<UTCMillisDate>) optional(index, SonType.DATE);
   }
 
+  @SuppressWarnings("unchecked")
   public Optional<UUID> uuidValue(int index) {
     return (Optional<UUID>) optional(index, SonType.UUID);
   }

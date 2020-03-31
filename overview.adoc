@@ -9,6 +9,7 @@ access to serialization to be really fast. We want to work with them
 interactively, but read inside them without tons of overhead cost.
 
 == Everyone loves JSON...
+
 * JSON itself is kinda a mess
 * Not strongly typed.
 * Is really a string based system. Annoying to serialize tightly.
@@ -18,6 +19,7 @@ interactively, but read inside them without tons of overhead cost.
 * lots of publicly available JSON out there
 
 == For CDT<==> binary, any doc format needs
+
 * Needs to be able to be serialized very quickly
 * Needs interactive mutation as well
 * Needs to be readable *without* deserializing -- lift data elements on demand right out of ByteBuffers
@@ -27,6 +29,7 @@ interactively, but read inside them without tons of overhead cost.
 == “Piles” of data
 
 === Basic Unit of Human Organization: The Pile 💩
+
 Drawing from both Runnel and ValuePiles and other things, we have a “Pile” package.
 
 Piles are structured data sequences, which allow for a list of data elements in order,
@@ -39,18 +42,23 @@ followed by a meta stanza that organizes types and sizes of each element.
 * Basically a variable sized packed array
 
 === Again, a Pile is a heterogeneous Array with Typing
+
 An example Pile ‘p’ can be thought of as an typed array: [ 10 (int), 12L (long), “foo” (string) ]
-....
+
+[source,java]
+----
 p.size() == 3
 p.int32(0) == 10
 p.int64(1) == 12L
 p.string(2) == “foo”
 p.string(0) --> ClassCastException
 p.int64(0) == 10L (upconverts automatically, debatable decision)
-....
+----
 
 === Code... ish.
-....
+
+[source,java]
+----
 w = new PileWriter();
 w.int8((byte)10);
 w.str(“hello”);
@@ -72,9 +80,10 @@ String k = inner.str(0); // returns “inner”
 inner.count() == 1
 
 rdr.count() == 4
-....
+----
 
 === More Details
+
 * int8, int16, int32, int64, bool, null, float32, float64, char (fixed size)
 * zigzag32, zigzag64 (variable encoded signed ints, 1-9 bytes)
 ** int8/int16/int32/zigzag32 can be read as int32
@@ -88,6 +97,7 @@ block. Highly dense structure, but every element completely randomly accessible 
 metadata deserialization.
 
 === So that’s great, but primitive, right?
+
 * Intentional. Not a thing most people will interact with.
 * Tried to build the smallest thing that was useful.
 * Very testable, easily to understand.
@@ -98,27 +108,30 @@ metadata deserialization.
 == “Son” of a gun
 
 === Not JSON, just SON.
+
 So, how do we get from low level Piles, to something JSON-esque?
 
-. Binary friendly, type extensible, compact and *fast*?
-. Maps and lists, and compact and *fast*?
-. Deal efficiently with repeated string key names (but compact and *fast*)?
-. Useful for CDTs <==> binary interchange (messaging, storage at rest, mutable structures,
+* Binary friendly, type extensible, compact and *fast*?
+* Maps and lists, and compact and *fast*?
+* Deal efficiently with repeated string key names (but compact and *fast*)?
+* Useful for CDTs <==> binary interchange (messaging, storage at rest, mutable structures,
 text representation), still needs to be fast (and *compact*)!
-. Terracotta-SON? *TC-SON*
+* Terracotta-SON? *TC-SON*
 
 === Built over Piles, but with more structure...
-. Streaming writer writes the same sort of data as piles, but as they are written...
-. Every map/list has a metadata stanza of typing. (this happens in the pile)
-. Every map gets a meta data block of <keyId>::<element offset>
-. Top level maps also have keep track of names used as keys in maps across all maps,
+
+* Streaming writer writes the same sort of data as piles, but as they are written...
+* Every map/list has a metadata stanza of typing. (this happens in the pile)
+* Every map gets a meta data block of <keyId>::<element offset>
+* Top level maps also have keep track of names used as keys in maps across all maps,
 included nested maps.
-. At the end of the top level Map, write the table of <names>::<key id>
-. High level, more complicated than that, but suffices for explanation.
-. Deserialization involves lazily materializing metadata, then accessing.
+* At the end of the top level Map, write the table of <names>::<key id>
+* High level, more complicated than that, but suffices for explanation.
+* Deserialization involves lazily materializing metadata, then accessing.
 
 === SonMaps and SonLists and SonValues
-....
+
+----
 SonMap implements Iterable<SonMapValue>{
    SonMapValue get(String name);
    size();
@@ -139,10 +152,12 @@ SonValue{
    SonList listValue();
    ...
 }
-....
+----
+
 This gives you type-checked access to values.
 
 === With apologies to Baskin Robbins, 3 not 31 flavors.
+
 * StreamingSonMapWriter & StreamingSonListWriter
 ** Write in order of values. Very fast for serialization to a buffer
 ** Manages an resizable byte buffer
@@ -165,9 +180,11 @@ Son.java interface, which as static factory methods
 for everything.
 
 === Extra types...
+
 You can use the byte[] ‘signifier’ to overlay further types
 
 For example, added:
+
 * Date (UTC, millis accuracy)
 ** 8 byte long + 1 signifier byte.
 * UUID - 2 longs
@@ -178,6 +195,7 @@ Reserved -1 ... -128 for internal SON usage, 0 means plain byte[],
 SON Users could specify >0 as needed for typing
 
 === Pretty printing
+
 4 different variants, each can be done compactly (no lin breaks) or
 normally (line breaks).
 
@@ -190,42 +208,57 @@ or doubles for floats. Best attempts.
 Accessible via Son.SON_PRINTERS enum
 
 === Dot notation
-Built a parser and matcher for general text notation matching:
-Simple approximate BNF:
-....
-    <dotspec> := <dotspec1> | <dotspec2>
-    <dotspec1> := (<single ref>) ( <innerpair> )*
-    <dotspec2> := "." ( <innerpair> )*
-    <innerpair> := ("." (<single ref>)? )
-    <single ref> := ( (<array ref>)+ | <field ref> (<array rev>)* )
-    <array ref> := [ (<array spec> (, <array spec>)*)? ]
-    <field ref> := <alphastring>
-    <array spec> := <pos number> | <pos number> - <pos number >
-	<field ref> := <alphastring>
-....
 
-So, a string like "foo.bar.baz" walks three key->map transitions.
-"foo.[0-3,7]" walks one map entry, "foo", then looks for it as an array,
+Built a parser and matcher for general text notation matching:
+
+   .["al\'dksfh"]
+   ."al\'dksfh"
+   .aldksfh
+   .[1]
+   .[-21]
+   .[1:-21]
+   .[1:-21, 10]
+   .[]
+
+
+Simple approximate BNF, close, probs not accurate:
+
+----
+    <dotspec> := <singlestep>* <eof>
+    <singlestep> := '.'? <angleStep> | <quoteStep> | <simpleStep>
+    <simpleStep> := ("a-zA-Z" ("a-zA-Z0-9_)*)
+    <quoteStep> := '"' <escapedChars> '"'
+    <angleStep> := '[' ( ']' | ((<arrayStep> <quoteStep> ) ']'))
+
+    <arrayStep> := <arraySingle> (',' <arraySingle>>)*
+    <arraySingle> := <integer> | <integer> ':' <integer>
+
+    <integer> ('+'|'-')? ( ('0'-'9')+ )
+----
+
+So, a string like ".foo.bar.baz" walks three key->map transitions.
+".foo.[0:3,7]" walks one map entry, "foo", then looks for it as an array,
 and matches 0,1,2,3,7 indexes if they exist.
 
-Collapsed notations are allowed, such as "foo[0-3][2]" is the same
-as "foo.[0-3].[2]".
+Collapsed notations are allowed, such as "foo[0:3][2]" is the same
+as ".foo.[0:3].[2]".
 
 Dot notation here is implemented to walk the *structural* members of
 a map/list, not the primitive types. So you can't match a literal
 string or integer, you can just traverse to a map or list.
 
-You can use [] to wildcard all array entries, and just an empty string
-between "."'s to wildcard all map values. See unit tests for more specifics.
+You can use .[] to wildcard all array/map entries. See unit tests for more specifics.
 
 Accessible via Son.dotParser() static method.
 
 === Missing?
+
 * No enums. Seems dumb, the cost of serializing the class name is prohibitive
 * SonMap is not a java.util.Map, SonList is not a java.util.List
 ** seems like the right decision, but debatable I suppose
 
 == Upshot
+
 We get a rich, mutable list/map structured format, with typing, that is
 also a compact and fast-to-serialize binary-at-rest format, which can
 then be accessed randomly without the need for deserialization.
@@ -236,9 +269,11 @@ These are just running notes of how it was developed, of course just in plaintex
 but kept here for ... reasons.
 
 === UID notes
+
 	The UUID string representation is as described by this BNF:
-....
-  	UUID                   = <time_low> "-" <time_mid> "-"
+
+----
+   UUID                   = <time_low> "-" <time_mid> "-"
                             <time_high_and_version> "-"
                             <variant_and_sequence> "-"
                             <node>
@@ -252,28 +287,28 @@ but kept here for ... reasons.
          "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
          | "a" | "b" | "c" | "d" | "e" | "f"
          | "A" | "B" | "C" | "D" | "E" | "F"
-....
+----
 
 === First cut done
 
 	* first, respin this as nested value pile, that makes more sense.
 
-....
+----
 	PileWriter - streaming writer
 	PileReader - random access reader
 	PileUpdater - random access updater (for fixed size elements)
-....
 
-So, tail stanza could be much more efficient
-....
-		needs to have:
+
+    So, tail stanza could be much more efficient
+
+    needs to have:
 			<varint:count>
 			[
 				<byte:type>{<varint:size>},
 				...
 			]
 			<int:metadata size>
-....
+
 		* so, compression:
 			** rll encode the type/size stanza?
 				*** for fixed size only
@@ -289,7 +324,7 @@ So, tail stanza could be much more efficient
 	we have how many types:	boolean, char, int, long, double, string, barr,
 
 	JSON is, trivially:
-....
+
 		<doc> := { <element pair> , ... }
 
 		<element pair> :=	<element name> : <element>
@@ -309,13 +344,13 @@ So, tail stanza could be much more efficient
 						| <barr>
 
 		<type> := 'a' | 'c' | 'b' | 'i' | 'l' | 'd' | 's' | 'x' | 'o'
-....
+
 		except there is no <char>, only <long>/<double>, no <barr>
 
 		so you need {type} to allow for keyhole
 
 		Hmmm. But the writer should be very different, correct?
-....
+
 		new SonWriter(ByteBuffer)
 			.append("key", "val")
 			.list("key")
@@ -331,7 +366,6 @@ So, tail stanza could be much more efficient
 		reader.keys();
 		reader.get<type>("name");
 	    reader.getInt8("name"); etc.
-....
 
 		scope of property names is ... problematic;	you want to resuse them across levels, but not within.
 

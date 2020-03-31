@@ -150,8 +150,8 @@ public class IntIntMap {
   }
 
   private void rehash(final int newCapacity) {
-    Float p = (newCapacity / (2 * fillFactor));
-    threshold = p.intValue();
+    float p = (newCapacity / (2 * fillFactor));
+    threshold = (int) p;
     mask = newCapacity / 2 - 1;
     maskTimes2 = newCapacity - 1;
 

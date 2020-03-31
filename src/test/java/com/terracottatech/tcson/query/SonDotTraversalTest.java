@@ -56,7 +56,7 @@ public class SonDotTraversalTest {
     assertThat(got.size(), is(1));
     assertThat(got.get(0).stringValue(), is("two"));
 
-    t = Son.dotParser().parse("[0-9].two");
+    t = Son.dotParser().parse("[0:9].two");
     got = t.matches(list, false);
     assertThat(got.size(), is(1));
     assertThat(got.get(0).stringValue(), is("two"));
@@ -79,7 +79,7 @@ public class SonDotTraversalTest {
                                                                                                                 .get())
                                                                                              .get()).get();
 
-    SonDotTraversal t = Son.dotParser().parse("il.[2].hey");
+    SonDotTraversal t = Son.dotParser().parse("il[2]hey");
     List<SonValue> got = t.matches(map, false);
     assertThat(got.size(), is(1));
     assertThat(got.get(0).stringValue(), is("bar"));
@@ -179,23 +179,18 @@ public class SonDotTraversalTest {
   @Test
   public void testSimpleArrayRanges2() throws ParseException {
     MutableSonList list = writeableList().builder().add(1).add("foo").add(true).get();
-    SonDotTraversal t = Son.dotParser().parse("[1-1]");
+    SonDotTraversal t = Son.dotParser().parse("[1:1]");
     List<SonValue> got = t.matches(list, false);
     assertThat(got.size(), is(1));
     assertThat(got.get(0).stringValue(), is("foo"));
 
-    t = Son.dotParser().parse("[1-9,1]");
+    t = Son.dotParser().parse("[1:9,1]");
     got = t.matches(list, false);
     assertThat(got.size(), is(3));
     assertThat(got.get(0).stringValue(), is("foo"));
     assertThat(got.get(1).boolValue(), is(true));
+    assertThat(got.get(2).stringValue(), is("foo"));
 
-    try {
-      t = Son.dotParser().parse("[9-1,1]");
-      t.matches(list, true);
-      Assert.fail();
-    } catch (ParseException e) {
-    }
   }
 
   @Test
@@ -206,8 +201,36 @@ public class SonDotTraversalTest {
     assertThat(got.size(), is(1));
     assertThat(got.get(0).boolValue(), is(true));
 
-    t = Son.dotParser().parse(".");
+    t = Son.dotParser().parse(".[]");
     got = t.matches(map, false);
     assertThat(got.size(), is(2));
+
+    t = Son.dotParser().parse(".");
+    got = t.matches(map, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).mapValue(), is(map));
+  }
+
+  @Test
+  public void testNegativeArray() throws ParseException {
+    MutableSonList list = writeableList().builder()
+                            .add(1)
+                            .add(2)
+                            .add(3)
+                            .add(4)
+                            .add(5)
+                            .get();
+    SonDotTraversal t = Son.dotParser().parse("[-1]");
+    List<SonValue> got = t.matches(list, false);
+    assertThat(got.size(), is(1));
+    assertThat(got.get(0).intValue(), is(5));
+
+    t = Son.dotParser().parse("[2:-1]");
+    got = t.matches(list, false);
+    assertThat(got.size(), is(3));
+    assertThat(got.get(0).intValue(), is(3));
+    assertThat(got.get(1).intValue(), is(4));
+    assertThat(got.get(2).intValue(), is(5));
+
   }
 }

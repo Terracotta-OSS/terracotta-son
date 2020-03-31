@@ -10,7 +10,6 @@ import com.terracottatech.tcson.NameSource;
 import com.terracottatech.tcson.Son;
 import com.terracottatech.tcson.SonBytes;
 import com.terracottatech.tcson.SonMap;
-import com.terracottatech.tcson.SonMapValue;
 import com.terracottatech.tcson.SonType;
 import com.terracottatech.tcson.UTCMillisDate;
 import com.terracottatech.tcson.pile.ManagedBuffer;
@@ -21,7 +20,6 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Objects;
@@ -174,7 +172,7 @@ public class MutableSonMapImpl implements MutableSonMap {
   }
 
   @Override
-  public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+  public void readExternal(ObjectInput in) throws IOException {
     int len = in.readInt();
     byte[] dest = new byte[len];
     in.read(dest);
