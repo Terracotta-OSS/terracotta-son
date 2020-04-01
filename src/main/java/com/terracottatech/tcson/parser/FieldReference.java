@@ -9,6 +9,7 @@ import com.terracottatech.tcson.SonValue;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -56,14 +57,25 @@ public class FieldReference {
       this(one, one);
     }
 
-    public List<SonValue> extract(SonList<?> l) {
-      int actualLeft = actual(left, l.size());
-      int actualRight = actual(right, l.size());
-      LinkedList<SonValue> vals = new LinkedList<>();
-      for (int i = actualLeft; i <= actualRight && i < l.size(); i++) {
+    public List<Integer> extractPositions(int listSize) {
+      HashSet<Integer> set = new HashSet<Integer>();
+      int actualLeft = actual(left, listSize);
+      int actualRight = actual(right, listSize);
+      for (int i = actualLeft; i <= actualRight && i < listSize; i++) {
         if (i >= 0) {
-          vals.add(l.get(i));
+          set.add(i);
         }
+      }
+      ArrayList<Integer> ret = new ArrayList<>(set);
+      ret.sort(null);
+      return ret;
+    }
+
+    public List<SonValue> extract(SonList<?> l) {
+      LinkedList<SonValue> vals = new LinkedList<>();
+      List<Integer> positions = extractPositions(l.size());
+      for (int i : positions) {
+        vals.add(l.get(i));
       }
       return vals;
     }
