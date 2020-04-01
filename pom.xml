@@ -78,20 +78,6 @@
         </dependency>
     </dependencies>
 
-    <distributionManagement>
-        <repository>
-            <id>terracotta-nexus-staging</id>
-            <name>Terracotta Nexus Staging Repository</name>
-            <url>http://nexus.terracotta.eur.ad.sag/service/local/staging/deploy/maven2</url>
-        </repository>
-        <snapshotRepository>
-            <id>terracotta-ee-snapshots</id>
-            <uniqueVersion>false</uniqueVersion>
-            <name>Terracotta EE Snapshots Repository</name>
-            <url>http://nexus.terracotta.eur.ad.sag/content/repositories/terracotta-ee-snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
-
     <scm>
         <connection>scm:git:ssh://git@irepo.eur.ad.sag:7999/tab/terracotta-son.git</connection>
         <developerConnection>scm:git:ssh://git@irepo.eur.ad.sag:7999/tab/terracotta-son.git</developerConnection>
