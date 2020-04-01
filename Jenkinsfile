@@ -18,4 +18,4 @@
 //See https://svn.terracotta.org/repo/internal/infrastructure/jenkins-pipeline-job-builder/trunk/shared/vars/ 
 //for defaults and options
 
-mavenBuild goal: 'clean deploy'
+mavenBuild()
