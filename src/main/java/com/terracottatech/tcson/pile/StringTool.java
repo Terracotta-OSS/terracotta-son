@@ -45,7 +45,7 @@ import java.util.Arrays;
  * characters which encode by simply casting to {@code byte}.
  *
  * @author Clifford W. Johnson
- * @implNote Although the format permits lengths greater than {@code Integer.MAX_VALUE}, present
+ * Although the format permits lengths greater than {@code Integer.MAX_VALUE}, present
  * {@code ByteBuffer} capacity is limited to {@code Integer.MAX_VALUE} so the maximum supported
  * length for an encoded {@code String} is less than {@code Integer.MAX_VALUE}.
  */

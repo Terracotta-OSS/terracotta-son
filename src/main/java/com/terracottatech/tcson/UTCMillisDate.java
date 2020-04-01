@@ -15,12 +15,12 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- * <p>DateTime class, trimmed to millis accuracy, always UTC.</p>
+ * <p>DateTime class, trimmed to millis accuracy, always UTC.
  * <p>This class holds a java {@link ZonedDateTime} object, but it keeps
  * it as UTC time (the internal ZoneDateTime will be re-expressed
- * in terms of UTC) and it trims granularity to millis.</p>
+ * in terms of UTC) and it trims granularity to millis.
  * <p>This is .. a debatable design choice, but means the entire time
- * can be encoded in one long, which does help things a bit.</p>
+ * can be encoded in one long, which does help things a bit.
  */
 public class UTCMillisDate implements Serializable,Comparable<UTCMillisDate> {
   private static final long serialVersionUID = -1114007623015613648L;
