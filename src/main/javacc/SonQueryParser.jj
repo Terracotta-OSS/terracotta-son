@@ -74,26 +74,32 @@ List<FieldReference> dotSpec():
 }
 {
    (
-      (<KW_PERIOD>)?
       (
-         fr = singleStep() { list.add(fr); }
-         (
-            (<KW_PERIOD>)?
-            fr = singleStep() { list.add(fr); }
-         )*
-      )?
+          (
+             (<KW_PERIOD>)?
+             (
+             ( fr=complexStep() | fr = simpleStep() ) { list.add(fr); }
+             (
+                (
+                   ( <KW_PERIOD> (fr = complexStep() | fr = simpleStep() ) )
+                   |( fr = complexStep() )
+                ) { list.add(fr); }
+             )*
+             )?
+          )
+      )
       <EOF>
    )
    { return list; }
 }
 
 // <singlestep> := <angleStep> | <quoteStep> | <simpleStep>
-FieldReference singleStep():
+FieldReference complexStep():
 {
   FieldReference ret;
 }
 {
-   ( ret= angleStep() | ret = stringStep() | ret = simpleStep() )
+   ( ret= angleStep() | ret = stringStep() )
    { return ret; }
 }
 

@@ -145,6 +145,14 @@ public class SonQueryNotationTest {
     Assert.assertThat(dot.size(), is(1));
     Assert.assertThat(dot.get(0).isWild(), is(true));
 
+    try {
+      p = new SonQueryParser(new StringReader("some list.[]"));
+      dot = p.dotSpec();
+      System.out.println(dot);
+      Assert.fail();
+    } catch(ParseException e) {
+    }
+
     p = new SonQueryParser(new StringReader("foo.[ 1:10 ].bar.baz.[].tail"));
     dot = p.dotSpec();
     Assert.assertThat(dot.size(), is(6));

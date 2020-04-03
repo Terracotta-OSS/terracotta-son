@@ -240,7 +240,7 @@ So, a string like ".foo.bar.baz" walks three key->map transitions.
 ".foo.[0:3,7]" walks one map entry, "foo", then looks for it as an array,
 and matches 0,1,2,3,7 indexes if they exist.
 
-Collapsed notations are allowed, such as "foo[0:3][2]" is the same
+You can skip the first period if you like, such as "foo.[0:3].[2]" is the same
 as ".foo.[0:3].[2]".
 
 Dot notation here is implemented to walk the *structural* members of
