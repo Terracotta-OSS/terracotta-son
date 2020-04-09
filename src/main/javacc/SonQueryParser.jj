@@ -44,6 +44,8 @@ SKIP :
 TOKEN [IGNORE_CASE] :
 {
    <DQ_LITERAL: <KW_DQUOTE> ( <ESCAPE_CHAR> | <ALPHA> )+ <KW_DQUOTE> >
+ | <WC_LITERAL: <KW_LSQUARE> <KW_RSQUARE> >
+ | <ANGLE_LITERAL: <KW_LSQUARE> ((["a"-"z", "A"-"Z"]) ( ~["]"] )*)? <KW_RSQUARE> >
  | <SIMPLE_STRING: (["a"-"z", "A"-"Z"]) (["a"-"z", "A"-"Z", "0"-"9", "_"])* >
  | <#INT_SIGN: ["-", "+"]>
  | <#DIGIT: ["0"-"9"] >
@@ -74,46 +76,44 @@ List<FieldReference> dotSpec():
 }
 {
    (
-      (<KW_PERIOD>)?
       (
-         fr = singleStep() { list.add(fr); }
+         (<KW_PERIOD>)?
          (
-            (<KW_PERIOD>)?
-            fr = singleStep() { list.add(fr); }
-         )*
-      )?
+            ( fr = angleStep() | fr = stringStep() | fr = simpleStep() ) { list.add(fr); }
+            (
+               <KW_PERIOD>
+               ( fr =angleStep() | fr = stringStep() | fr = simpleStep() ) { list.add(fr); }
+            )*
+          )?
+      )
       <EOF>
    )
    { return list; }
-}
-
-// <singlestep> := <angleStep> | <quoteStep> | <simpleStep>
-FieldReference singleStep():
-{
-  FieldReference ret;
-}
-{
-   ( ret= angleStep() | ret = stringStep() | ret = simpleStep() )
-   { return ret; }
 }
 
 // <angleStep> := '[' ( ']' | ((<arrayStep> <quoteStep> | <simplestep> ) ']'))
 FieldReference angleStep():
 {
    FieldReference ret;
+   Token t;
  }
 {
-   <KW_LSQUARE>
+   <WC_LITERAL> { return new FieldReference(); }
+   |
+   t = <ANGLE_LITERAL> { return new FieldReference(t.image.substring(1, t.image.length()-1)); }
+   |
    (
-      <KW_RSQUARE> { return new FieldReference(); }
-      |
-      (
-         (
-            ret= arrayStep() | ret= stringStep()
-         )
-         <KW_RSQUARE>
-      ) { return ret; }
-   )
+       <KW_LSQUARE>
+       (
+          <KW_RSQUARE> { return new FieldReference(); }
+          |
+          (
+             ( ret = arrayStep() | ret = stringStep() )
+             <KW_RSQUARE>
+          )
+          { return ret; }
+       )
+    )
 }
 
 // <quoteStep> := '"' <escapedChars> '"'

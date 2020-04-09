@@ -145,6 +145,25 @@ public class SonQueryNotationTest {
     Assert.assertThat(dot.size(), is(1));
     Assert.assertThat(dot.get(0).isWild(), is(true));
 
+    try {
+      p = new SonQueryParser(new StringReader("some list.[]"));
+      p.dotSpec();
+      Assert.fail();
+    } catch(ParseException e) {
+    }
+
+    p = new SonQueryParser(new StringReader("[some list].[]"));
+    dot = p.dotSpec();
+    assertThat(dot.size(), is(2));
+    assertThat(dot.get(0).mapRef().getFieldName(), is("some list"));
+    assertThat(dot.get(1).isWild(), is(true));
+
+    p = new SonQueryParser(new StringReader(".[some list].[]"));
+    dot = p.dotSpec();
+    assertThat(dot.size(), is(2));
+    assertThat(dot.get(0).mapRef().getFieldName(), is("some list"));
+    assertThat(dot.get(1).isWild(), is(true));
+
     p = new SonQueryParser(new StringReader("foo.[ 1:10 ].bar.baz.[].tail"));
     dot = p.dotSpec();
     Assert.assertThat(dot.size(), is(6));
@@ -155,6 +174,10 @@ public class SonQueryNotationTest {
     Assert.assertThat(dot.get(3).mapRef().getFieldName(), is("baz"));
     Assert.assertThat(dot.get(4).isWild(), is(true));
     Assert.assertThat(dot.get(5).mapRef().getFieldName(), is("tail"));
+
+    p = new SonQueryParser(new StringReader("."));
+    dot = p.dotSpec();
+    assertThat(dot.size(), is(0));
 
   }
 

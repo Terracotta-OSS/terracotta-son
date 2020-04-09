@@ -79,7 +79,7 @@ public class SonDotTraversalTest {
                                                                                                                 .get())
                                                                                              .get()).get();
 
-    SonDotTraversal t = Son.dotParser().parse("il[2]hey");
+    SonDotTraversal t = Son.dotParser().parse("il.[2].hey");
     List<SonValue> got = t.matches(map, false);
     assertThat(got.size(), is(1));
     assertThat(got.get(0).stringValue(), is("bar"));
