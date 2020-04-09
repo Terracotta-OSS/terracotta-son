@@ -228,7 +228,7 @@ Simple approximate BNF, close, probs not accurate:
     <singlestep> := '.'? <angleStep> | <quoteStep> | <simpleStep>
     <simpleStep> := ("a-zA-Z" ("a-zA-Z0-9_)*)
     <quoteStep> := '"' <escapedChars> '"'
-    <angleStep> := '[' ( ']' | ((<arrayStep> <quoteStep> ) ']'))
+    <angleStep> := '[' ( ']' | ((<arrayStep> | <quoteStep> | ~[']']+ ) ']'))
 
     <arrayStep> := <arraySingle> (',' <arraySingle>>)*
     <arraySingle> := <integer> | <integer> ':' <integer>
