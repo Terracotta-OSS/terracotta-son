@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 public class SonParserTest {
@@ -78,6 +79,36 @@ public class SonParserTest {
   }
 
   @Test
+  public void testRoundTripChars() throws ParseException {
+    MutableSonList l = Son.writeableList();
+    l.add('d');
+    l.add('\\');
+    l.add('\r');
+    l.add('\n');
+    l.add('\'');
+    String p = Son.SONPrinters.SON.printer(false).printList(l);
+    System.out.println(p);
+
+    MutableSonList l2 = Son.parser().use(p).list();
+    assertThat(l.deepEquals(l2), is(true));
+  }
+
+  @Test
+  public void testRoundTripStrings() throws ParseException {
+    MutableSonList l = Son.writeableList();
+    l.add("ddd");
+    l.add("f\\f");
+    l.add("f\"f");
+    l.add("f\nf");
+    l.add("f\rf");
+    String p = Son.SONPrinters.SON.printer(false).printList(l);
+    System.out.println(p);
+
+    MutableSonList l2 = Son.parser().use(p).list();
+    assertThat(l.deepEquals(l2), is(true));
+  }
+
+  @Test
   public void testParsePrintRoundTripOneMap() throws ParseException {
     MutableSonMap m = Son.writeableMap();
     m.put("int val", 10);
@@ -91,6 +122,11 @@ public class SonParserTest {
     subm.put("long val", 10l);
     subm.put("uuid val", UUID.randomUUID());
     subm.put("char val", 'v');
+    //subm.put("char nl", '\n');
+    //subm.put("char cr", '\r');
+    //subm.put("char tab", '\n');
+    subm.put("char sq", '\'');
+    subm.put("char bs", '\\');
     subm.putNull("null val");
     m.put("map value", subm);
     MutableSonList l = SonList.writeable();

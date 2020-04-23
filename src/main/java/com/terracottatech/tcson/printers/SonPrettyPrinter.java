@@ -258,7 +258,7 @@ public class SonPrettyPrinter implements SonPrinter {
         char ch = obj.toString().charAt(0);
         switch(ch) {
           case '\'':
-            return "'\\'";
+            return "'\\''";
           case '\\':
             return "'\\\\'";
           case '\r':
