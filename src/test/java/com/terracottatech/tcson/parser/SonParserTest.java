@@ -87,6 +87,7 @@ public class SonParserTest {
     m.put("utc date val", new UTCMillisDate());
     MutableSonMap subm = Son.writeableMap();
     subm.put("bytes val", (byte) 8, new byte[] { 9, 7, 5, 3, 1 });
+    subm.put("bytes val2", (byte) 0, new byte[] { 11, 9, 7, 5, 3, 1 });
     subm.put("long val", 10l);
     subm.put("uuid val", UUID.randomUUID());
     subm.put("char val", 'v');
