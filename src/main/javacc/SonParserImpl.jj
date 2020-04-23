@@ -102,7 +102,7 @@ TOKEN [IGNORE_CASE] :
 
 TOKEN :
 {
- <#BIN64_LITERAL: ( ["a"-"z"] | ["A"-"Z"] <DIGIT> | "=" | "+" | "/" ) + >
+ <#BIN64_LITERAL: ( ["a"-"z"] | ["A"-"Z"] | <DIGIT> | "=" | "+" | "/" ) + >
  | <#SPECIAL_FLOATS: ( "Nan" | "-Infinity" | "Infinity" | "+Infinity" ) >
 }
 

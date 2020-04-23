@@ -380,4 +380,12 @@ public class SonParserTest {
     Assert.assertThat(maps, is(maps2));
 
   }
+
+  @Test
+  public void testDeath() throws IOException, ParseException {
+    try (InputStream is = this.getClass().getResourceAsStream("/death.tcson")) {
+      SonParser parser = Son.parser().use(new InputStreamReader(is, "UTF-8"));
+      MutableSonMap map = parser.map();
+    }
+  }
 }
