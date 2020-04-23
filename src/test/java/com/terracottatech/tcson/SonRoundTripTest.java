@@ -94,6 +94,9 @@ public class SonRoundTripTest {
     w.append(13.0f);
     w.append(13.0d);
     w.append('&');
+    w.append('\n');
+    w.append('\r');
+    w.append('\t');
     w.append('\'');
     w.append('\\');
     w.append("some string");
