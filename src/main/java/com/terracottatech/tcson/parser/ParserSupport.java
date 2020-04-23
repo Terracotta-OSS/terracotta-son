@@ -25,10 +25,10 @@ public class ParserSupport {
               int len = processUTF(s, i + 1, sb);
               i = i + len;
               break;
-            case '\n':
+            case 'n':
               sb.append('\n');
               break;
-            case '\r':
+            case 'r':
               sb.append('\r');
               break;
             case 'b':
