@@ -254,8 +254,14 @@ public class SonPrettyPrinter implements SonPrinter {
         } else {
           return toBase64(sbs.getBuffer());
         }
-      case CHAR:
-        return "'" + obj.toString() + "'";
+      case CHAR: {
+        char ch = obj.toString().charAt(0);
+        if (ch == '\'' || ch == '\\') {
+          return "'\\" + ch + "'";
+        } else {
+          return "'" + ch + "'";
+        }
+      }
       case FLOAT:
         return floatString((Float) obj);
       case DOUBLE:

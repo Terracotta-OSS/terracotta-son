@@ -182,3 +182,103 @@
     "cell4" : false
   }
 }
+{
+  "$key" : "key-177",
+  "$cells" : {
+    "cell0" : -8202215145155734000,
+    "cell1" : "vlnhrtwpxwbvkjrdlcgithdtmejycxoztgusolqnpbjfu",
+    "cell2" : [
+      int : -89003672,
+      -1331246559349465881,
+      true,
+      [
+        {
+          "bool_803437" : false,
+          "bool_687916" : false,
+          "char_913782" : '镅',
+          "list_951732" : [
+            false,
+            '묒'
+          ],
+          "list_966501" : [
+            [
+              int : 1178961048,
+              'ᕙ',
+              [
+                7106063668468579959,
+                {
+                  "long_468950" : 5593387279432037888,
+                  "long_433546" : 4180328888331775195
+                },
+                int : 792862334
+              ],
+              135411089131257321
+            ],
+            0.8418267193161861d,
+            0.6927775824604583d,
+            "xvsjcnifvsocxtfjtgbnribl",
+            "kpibagahwcexfwkgioiirukbrsoecmdxufehxkioqmqdoxbdkiparbta"
+          ]
+        },
+        {
+          "int_70096" : int : 11266532,
+          "long_417297" : 189264906663866653,
+          "string_808539" : "ddxveqyzwrfvdgdspfvfojgnwfjjvcijthhrtsyzggbjhkmolydqxaew",
+          "bool_829684" : false,
+          "map_929924" : {
+            "double_659294" : 0.24474672866587754d,
+            "bool_410950" : true,
+            "map_48753" : {
+              "bool_542558" : false,
+              "map_445096" : {
+                "int_883533" : int : 1533651976,
+                "map_313256" : {
+                  "long_842199" : -3513662243677253395,
+                  "map_562166" : {
+                    "char_9045" : '灰',
+                    "long_298059" : -8724289179204347311,
+                    "map_67997" : {
+                      "bool_249519" : false,
+                      "int_933635" : int : 466693097,
+                      "double_248161" : 0.8601594938306476d,
+                      "string_80042" : "oqreclqhgxfhxpuxolzbiodjgpbloupykaefxcjnlczmwronj"
+                    },
+                    "string_538038" : "eluaefihflmfmbcyyyztneoilbz"
+                  },
+                  "map_107637" : {
+                    "bytes_300680" : bytes : fwnZgl820IhbIMf3W5H2rerqoj8ZM6IwonQeYE9CmsKcnDJSm/cmRQ==,
+                    "string_968971" : "mizavulhrbgqzqkmjdxhbbmbeszzlzwd",
+                    "map_786238" : {
+                      "char_220572" : '棏',
+                      "long_34795" : -2581654846842325121
+                    },
+                    "double_541347" : 0.4726901165081132d,
+                    "char_668974" : '\\',
+                    "long_682273" : 1922161354919800364
+                  },
+                  "char_356156" : '匠',
+                  "char_905383" : '붻'
+                },
+                "int_766391" : int : -140686442,
+                "bytes_821886" : bytes : /9MmRTmU58QaFioOhY6w4Mmh8Ow=
+              },
+              "map_753123" : {
+                "long_753830" : 6727007430140600048,
+                "int_788697" : int : -578373444,
+                "double_421678" : 0.14099874579203475d,
+                "bool_949011" : false,
+                "char_488454" : '嶙',
+                "int_832280" : int : 704366359
+              },
+              "char_92963" : '責'
+            }
+          },
+          "bool_614694" : true
+        }
+      ],
+      "jpmlwynpcyupoqbftjycgiluwcqcgvvaxig"
+    ],
+    "cell3" : "xnbcccsclqibibxpqaulgnbyzfrajxpfzvtkgcyjwblnoz",
+    "cell4" : bytes : 8kFz172KR+EtZlFlAzU6oZvw3pVgkNYKgbBT1uRxLV5anTtcFA7k4lZQ
+  }
+}

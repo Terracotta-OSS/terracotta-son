@@ -94,6 +94,8 @@ public class SonRoundTripTest {
     w.append(13.0f);
     w.append(13.0d);
     w.append('&');
+    w.append('\'');
+    w.append('\\');
     w.append("some string");
     w.append((byte) 10, new byte[] { 1, 7, 4, 5 });
     w.append(UTCMillisDate.now());
@@ -130,6 +132,8 @@ public class SonRoundTripTest {
     w.append("key5", 13.0f);
     w.append("key6", 13.0d);
     w.append("key7", '&');
+    w.append("keyy7", '\\');
+    w.append("keyy8", '\'');
     w.append("key8", "some string");
     w.append("key9", (byte) 10, new byte[] { 1, 7, 4, 5 });
     w.append("key10", UTCMillisDate.now());

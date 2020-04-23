@@ -385,7 +385,8 @@ public class SonParserTest {
   public void testDeath() throws IOException, ParseException {
     try (InputStream is = this.getClass().getResourceAsStream("/death.tcson")) {
       SonParser parser = Son.parser().use(new InputStreamReader(is, "UTF-8"));
-      MutableSonMap map = parser.map();
+      MutableSonMap map1 = parser.map();
+      MutableSonMap map2 = parser.map();
     }
   }
 }
