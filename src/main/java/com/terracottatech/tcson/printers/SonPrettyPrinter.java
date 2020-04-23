@@ -256,10 +256,19 @@ public class SonPrettyPrinter implements SonPrinter {
         }
       case CHAR: {
         char ch = obj.toString().charAt(0);
-        if (ch == '\'' || ch == '\\') {
-          return "'\\" + ch + "'";
-        } else {
-          return "'" + ch + "'";
+        switch(ch) {
+          case '\'':
+            return "'\\'";
+          case '\\':
+            return "'\\\\'";
+          case '\r':
+            return "'\\r'";
+          case '\n':
+            return "'\\n'";
+          case '\t':
+            return "'\\t'";
+          default:
+            return "'" + ch + "'";
         }
       }
       case FLOAT:
