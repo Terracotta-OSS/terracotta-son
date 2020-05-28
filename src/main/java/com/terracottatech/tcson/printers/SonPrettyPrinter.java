@@ -292,5 +292,4 @@ public class SonPrettyPrinter implements SonPrinter {
         return Objects.toString(obj);
     }
   }
-
 }

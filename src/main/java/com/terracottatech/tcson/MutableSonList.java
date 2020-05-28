@@ -18,6 +18,7 @@ import java.util.UUID;
  * strongly typed values in a SonList.
  */
 public interface MutableSonList extends SonList<MutableSonValue>, Externalizable {
+  long serialVersionUID = 42L;
 
   default MutableSonList add(SonType type, Object value) {
     return set(size(), type, value);

@@ -28,6 +28,7 @@ import java.util.UUID;
 
 public class MutableSonListImpl implements MutableSonList {
 
+  private static final long serialVersionUID = -1770228071344659054L;
   private ArrayList<MutableSonValue> entries = new ArrayList<>();
 
   public MutableSonListImpl() {

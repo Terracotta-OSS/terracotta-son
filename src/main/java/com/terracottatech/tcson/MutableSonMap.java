@@ -19,6 +19,8 @@ import java.util.UUID;
  * buffer on demand..
  */
 public interface MutableSonMap extends SonMap<MutableSonValue.MapValue>, Externalizable {
+  long serialVersionUID = 420L;
+
   @Override
   default MutableSonMap asMutable() {
     return this;
