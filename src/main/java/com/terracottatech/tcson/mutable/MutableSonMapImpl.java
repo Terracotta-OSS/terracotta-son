@@ -26,6 +26,9 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class MutableSonMapImpl implements MutableSonMap {
+
+  private static final long serialVersionUID = -2312184814185347482L;
+
   private LinkedHashMap<String, MutableSonValue.MapValue> map = new LinkedHashMap<>();
 
   @Override

@@ -111,19 +111,19 @@ public class ReadableSonTest {
 
     ByteBuffer buf = writer.buffer().getBuffer();
     buf.flip();
-    SonMap m = new ReadableSonMapImpl(ns, buf);
+    SonMap<?> m = new ReadableSonMapImpl(ns, buf);
 
     Assert.assertThat(m.get("int").intValue(), is(10));
     Assert.assertThat(m.get("foo").stringValue(), is("happy"));
     Assert.assertThat(m.get("fl").floatValue(), is(32.5f));
     Assert.assertThat(m.get("barr").bytesValue().getSignifier(), is((byte) 1));
     Assert.assertThat(m.get("barr").bytesValue().getBuffer(), is(ByteBuffer.wrap(new byte[] { 1, 2, 4, 8 })));
-    SonList l = m.get("lst").listValue();
+    SonList<?> l = m.get("lst").listValue();
     Assert.assertThat(l.get(0).intValue(), is(10));
     Assert.assertThat(l.get(1).intValue(), is(11));
     Assert.assertThat(l.get(2).stringValue(), is("hi!"));
     Assert.assertThat(l.get(3).isNullValue(), is(true));
-    SonMap im = l.get(4).mapValue();
+    SonMap<?> im = l.get(4).mapValue();
 
     Assert.assertThat(im.get("f").isNullValue(), is(true));
     Assert.assertThat(im.get("int").intValue(), is(10001));
