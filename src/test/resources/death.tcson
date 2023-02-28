@@ -3,6 +3,7 @@
   "$cells" : {
     "cell0" : int : 17850135,
     "cell1" : bytes : Tg95nL307CRAtx6FXiwfjnUBbRU3IoX3VF4=,
+    "cell11" : bytes :,
     "cell2" : '칔',
     "cell3" : {
       "int_438588" : int : 705520311,
@@ -13,6 +14,7 @@
             "long_760509" : -5007908211146076788,
             "string_111473" : "itsgogcvfabsbbitnhznqyijwjjsezdhrhqsgqlter",
             "bytes_450718" : bytes : y7MX8G9SWEnEMiBDp6mbxyWp1yovZpNqjjtdthTO2zMTcWj9E8via763wZY=,
+            "bytes_450719" : bytes : ,
             "bool_993743" : true,
             "int_262670" : int : 764439773,
             "list_784099" : [
