@@ -93,6 +93,15 @@
         </dependency>
     </dependencies>
 
+    <repositories>
+      <repository>
+        <id>terracotta-os-releases</id>
+        <url>https://nexus.terracotta.eur.ad.sag/content/repositories/terracotta-os-releases/</url>
+        <releases><enabled>true</enabled></releases>
+        <snapshots><enabled>false</enabled></snapshots>
+      </repository>
+    </repositories>
+
     <scm>
         <connection>scm:git:https://github.softwareag.com/Terracotta/terracotta-son.git</connection>
         <developerConnection>scm:git:https://github.softwareag.com/Terracotta/terracotta-son.git</developerConnection>
