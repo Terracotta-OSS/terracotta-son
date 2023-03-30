@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2018 Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA, and/or its subsidiaries and/or its affiliates and/or their licensors.
+ * Copyright (c) 2011-2023 Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA, and/or its subsidiaries and/or its affiliates and/or their licensors.
  * Use, reproduction, transfer, publication or disclosure is prohibited except as specifically provided for in your License Agreement with Software AG.
  */
 package com.terracottatech.tcson;
@@ -39,6 +39,7 @@ public class MutableSonTest {
                          .add(32.5f)
                          .get());
     writer.put("barr", new SonBytes((byte) 1, new byte[] { 1, 2, 4, 8 }, 0, 4));
+    writer.put("barr-none", new SonBytes((byte) 1, new byte[0], 0, 0));
     MutableSonMap m = writer.get();
 
     Assert.assertThat(m.get("int").intValue(), is(10));
@@ -46,6 +47,8 @@ public class MutableSonTest {
     Assert.assertThat(m.get("fl").floatValue(), is(32.5f));
     Assert.assertThat(m.get("barr").bytesValue().getSignifier(), is((byte) 1));
     Assert.assertThat(m.get("barr").bytesValue().getBuffer(), is(ByteBuffer.wrap(new byte[] { 1, 2, 4, 8 })));
+    Assert.assertThat(m.get("barr-none").bytesValue().getSignifier(), is((byte) 1));
+    Assert.assertThat(m.get("barr-none").bytesValue().getBuffer(), is(ByteBuffer.wrap(new byte[0])));
     SonList<?> l = m.get("lst").listValue();
     Assert.assertThat(l.get(0).intValue(), is(10));
     Assert.assertThat(l.get(1).intValue(), is(11));
@@ -79,6 +82,7 @@ public class MutableSonTest {
     writer.add(dt);
     writer.addNull();
     writer.add(uuid);
+    writer.add(new SonBytes((byte) 10, new byte[0]));
 
     MutableSonList m = writer.get();
 
@@ -95,6 +99,8 @@ public class MutableSonTest {
     Assert.assertThat(m.get(9).dateValue(), is(dt));
     Assert.assertThat(m.get(10).isNullValue(), is(true));
     Assert.assertThat(m.get(11).uuidValue(), is(uuid));
+    Assert.assertThat(m.get(12).bytesValue().getBuffer(), is(ByteBuffer.wrap(new byte[0])));
+    Assert.assertThat(m.get(12).bytesValue().getSignifier(), is((byte) 10));
   }
 
   @Test
@@ -113,6 +119,7 @@ public class MutableSonTest {
     writer.put("key7hh", '&');
     writer.put("key84", "some string");
     writer.put("key9gg", new SonBytes((byte) 10, barr));
+    writer.put("key9hh", new SonBytes((byte) 10, new byte[0]));
     writer.put("key10o", dt);
     writer.putNull("kelly11");
     writer.put("kerry12", uuid);
@@ -127,6 +134,8 @@ public class MutableSonTest {
     Assert.assertThat(m.get("keloy4").longValue(), is(12L));
     Assert.assertThat(m.get("key9gg").bytesValue().getSignifier(), is((byte) 10));
     Assert.assertThat(m.get("key9gg").bytesValue().getBuffer(), is(ByteBuffer.wrap(barr)));
+    Assert.assertThat(m.get("key9hh").bytesValue().getSignifier(), is((byte) 10));
+    Assert.assertThat(m.get("key9hh").bytesValue().getBuffer(), is(ByteBuffer.wrap(new byte[0])));
     Assert.assertThat(m.get("kedsfy5").floatValue(), is(13.0f));
     Assert.assertThat(m.get("key84").stringValue(), is("some string"));
     Assert.assertThat(m.get("keddy6").doubleValue(), is(13.0d));

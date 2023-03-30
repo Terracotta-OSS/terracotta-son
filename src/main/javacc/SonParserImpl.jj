@@ -66,7 +66,7 @@ TOKEN [IGNORE_CASE] :
 {
  <UTC_WITH_TYPE: <UTC_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> (<DIGIT>)+ >
  | <UUID_WITH_TYPE: <UUID_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> <UUID> >
- | <BYTES_WITH_TYPE: <BYTES_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> (<INT_NUMBER> <_WHITESPACE> <KW_POUND> <_WHITESPACE>)? <BIN64_LITERAL> >
+ | <BYTES_WITH_TYPE: <BYTES_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> (<INT_NUMBER> <_WHITESPACE> <KW_POUND> <_WHITESPACE>)? (<BIN64_LITERAL>)? >
  | <INT_WITH_TYPE: <INT_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> <INT_NUMBER> >
  | <BYTE_WITH_TYPE: <BYTE_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> <INT_NUMBER> >
  | <SHORT_WITH_TYPE: <SHORT_TYPE> <_WHITESPACE> <KW_COLON> <_WHITESPACE> <INT_NUMBER> >
@@ -348,26 +348,35 @@ MutableSonValue bytesValue():
    Token t;
    MutableSonValue val;
    String bytes;
-   String justBytes;
+   String justBytes = "";
    byte btyp=0;
 }
 {
    (
-      t = <BYTES_WITH_TYPE>
-      {
-        bytes=t.image.split(":")[1];
-        if(bytes.indexOf('#')>=0){
-         String[] pair=bytes.split("#");
-         btyp=(byte)Integer.parseInt(pair[0].trim());
-         justBytes=pair[1].trim();
-        } else {
-         btyp=(byte)0;
-         justBytes=bytes.trim();
-        }
-        val=new MutableSonValue(SonType.BYTES, new SonBytes(btyp, ParserSupport.parseB64(justBytes)));
-      }
-   )
-   { return val; }
+     t = <BYTES_WITH_TYPE>
+     {
+       String[] split = t.image.trim().split(":");
+       if (split.length > 1) {
+         bytes = split[1];
+         if (bytes.indexOf('#') >= 0){
+           String[] pair = bytes.split("#");
+           btyp = (byte) Integer.parseInt(pair[0].trim());
+           if (pair.length > 1) {
+             justBytes = pair[1].trim();
+           }
+         } else {
+           btyp = (byte)0;
+           justBytes = bytes.trim();
+         }
+       }
+       if (justBytes.isEmpty()) {
+         val = new MutableSonValue(SonType.BYTES, new SonBytes(btyp, new byte[0]));
+       } else {
+         val = new MutableSonValue(SonType.BYTES, new SonBytes(btyp, ParserSupport.parseB64(justBytes)));
+       }
+     }
+  )
+  { return val; }
 }
 
 MutableSonValue sonValue():
