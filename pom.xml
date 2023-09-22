@@ -1,19 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2020-2023 Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA, and/or its subsidiaries and/or its affiliates and/or their licensors.
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.terracotta.forge</groupId>
-        <artifactId>forge-parent</artifactId>
-        <version>4.15</version>
-        <relativePath/>
+        <groupId>org.terracotta</groupId>
+        <artifactId>terracotta-parent</artifactId>
+        <version>5.21</version>
     </parent>
 
-    <groupId>com.terracottatech</groupId>
+    <groupId>org.terracotta</groupId>
     <artifactId>terracotta-son</artifactId>
     <version>1.2-SNAPSHOT</version>
+
+    <inceptionYear>2020</inceptionYear>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -75,6 +93,53 @@
                     <includeTestSourceDirectory>false</includeTestSourceDirectory>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>4.0.0</version>
+                <configuration>
+                    <!-- TODO - FIX SPOTBUGS ISSUES IN THIS PROJECT (OSS MIGRATION) -->
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.mycila</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>4.2</version>
+                <configuration>
+                    <inlineHeader><![CDATA[
+Copyright (c) ${license.git.copyrightExistenceYears} Software AG, Darmstadt, Germany and/or Software AG USA Inc., Reston, VA, USA, and/or its subsidiaries and/or its affiliates and/or their licensors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+                ]]></inlineHeader>
+                    <excludes>
+                        <exclude>**/src/test/resources/**</exclude>
+                        <exclude>**/src/main/resources/**</exclude>
+                        <exclude>**/.idea/**</exclude>
+                        <exclude>**/nbproject/**</exclude>
+                        <exclude>Jenkinsfile*</exclude>
+                        <exclude>.m2/**</exclude>
+                    </excludes>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.mycila</groupId>
+                        <artifactId>license-maven-plugin-git</artifactId>
+                        <!-- make sure you use the same version as license-maven-plugin -->
+                        <version>4.2</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
     </build>
 
@@ -94,16 +159,14 @@
     </dependencies>
 
     <repositories>
-      <repository>
-        <id>terracotta-os-releases</id>
-        <url>https://nexus.terracotta.eur.ad.sag/content/repositories/terracotta-os-releases/</url>
-        <releases><enabled>true</enabled></releases>
-        <snapshots><enabled>false</enabled></snapshots>
-      </repository>
+        <!-- required to resolve parent pom -->
+        <repository>
+            <id>terracotta-releases</id>
+            <url>https://repo.terracotta.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
-    <scm>
-        <connection>scm:git:https://github.softwareag.com/Terracotta/terracotta-son.git</connection>
-        <developerConnection>scm:git:https://github.softwareag.com/Terracotta/terracotta-son.git</developerConnection>
-    </scm>
 </project>
